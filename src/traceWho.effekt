@@ -57,8 +57,9 @@ def who(): Sentence / {Trace} = do trace()
 // ---- Examples that Work ----
 
 def aliceLoves___(): {() => Sentence} => Sentence at {} = traceBoundary {loves(alice, __())}
+def aliceLoves___{answer: () => Sentence}: Sentence = traceBoundary {loves(alice, __())} {answer}
 val aliceLovesBob: Sentence = (aliceLoves___()){() => bob}
-val aliceLovesJohn: Sentence = (aliceLoves___()){() => john}
+val aliceLovesJohn: Sentence = aliceLoves___{() => john}
 
 // Second Block argument needs to be applied after first has been evaluated, so that bind and his are evaluated in the same order
 val bobLoveshisMother: Sentence = ioBoundary {
@@ -75,7 +76,6 @@ val aliceSawBob = (WhoDidAliceSee()){() => bob}
 
 // Who can pied-pipe surrounding words
 def whoseMotherDoesAliceLove(): {() => Sentence} => Sentence at {} = whoBoundary {who().mother()} {alice.loves(__())} 
-
 val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
 
 def whoSawHisMother(): Sentence = ioBoundary {
