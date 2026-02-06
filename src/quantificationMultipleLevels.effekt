@@ -1,0 +1,76 @@
+module quantificationMultipleLevels
+
+import src/sentence
+
+
+interface QuantificationMultipleLevels {
+  // Corresponds to every ___
+  def every(predicate: Sentence, level: Int): Sentence
+  // Corresponds to everyone, can be used with Input Output
+  def everyone(level: Int): Sentence
+  def someone(level: Int): Sentence
+  def a(predicate: Sentence, level: Int): Sentence
+}
+
+
+def quantificationBoundary(level: Int) { body: => Sentence / QuantificationMultipleLevels}: Sentence / QuantificationMultipleLevels = {
+  var counter = 0
+  def fresh(): Sentence = { val x = Person("x" ++ show(level) ++ show(counter)); counter = counter + 1; x }
+  try { body() } with QuantificationMultipleLevels {
+    def everyone(l) = {
+      if (l == level)
+        val x = fresh()
+        ForAll(x, resume(x))
+      else 
+        resume(do everyone(l))
+    }
+    def every(predicate, l) = {
+      if (l == level)
+        val x = fresh()
+        ForAll(x, Implies(Is(x, predicate), resume(x)))
+      else 
+        resume(do every(predicate, l))
+    }
+    def a(predicate, l) = {
+      if (l == level)
+        val x = fresh()
+        Exists(x, Implies(Is(x, predicate), resume(x)))
+      else 
+        resume(do every(predicate, l))
+    }
+    def someone(l) = {
+      if (l == level)
+      val x = fresh()
+      Exists(x, resume(x))
+      else 
+        resume(do someone(l))
+    }
+  }
+}
+
+
+def finalQuantificationBoundary { body: => Sentence / QuantificationMultipleLevels}: Sentence = { 
+  try {
+    body()
+  } with QuantificationMultipleLevels {
+    def everyone(l) = Empty()
+    def every(x, l) = Empty()
+    def a(x, l) = Empty()
+    def someone(l) = Empty()
+  }
+}
+
+
+// Examples
+val someoneLovesEveryone: Sentence = finalQuantificationBoundary(){
+  quantificationBoundary(2) {
+    quantificationBoundary(1){
+      do someone(1).loves(do everyone(2))
+    }
+  }
+}
+
+
+def main(): Unit = {
+  println(inspect(someoneLovesEveryone))
+}
