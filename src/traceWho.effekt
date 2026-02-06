@@ -1,0 +1,111 @@
+module traceWho
+
+import src/sentence
+import src/inputOutput
+
+
+interface Trace {
+  def trace(): Sentence
+}
+
+interface Who {
+  def who(): Sentence
+}
+
+
+def traceBoundary() { block: () => Sentence / Trace}: {() => Sentence}  => Sentence at {block} = box { {s} =>
+  try {
+    block()
+  } with Trace {
+    def trace() = { 
+      resume(s())
+    }
+  }
+}
+
+def whoBoundary{whoSentence: () => Sentence / Who}: {() => Sentence} => Sentence at {whoSentence} = box { {answer} =>
+  try {
+    whoSentence()
+  } with Who {
+    def who() = { 
+      resume(answer())
+    }
+  }
+}
+
+// Overload
+def traceBoundary() { block: () => Sentence / Trace} {block2: () => Sentence}: Sentence = {
+  (traceBoundary{block}){block2}
+}
+
+def traceBoundary() {block2: () => Sentence} { block: () => Sentence / Trace}: Sentence = {
+  (traceBoundary{block}){block2}
+}
+
+def whoBoundary{whoSentence: () => Sentence / Who} {block2: () => Sentence}: Sentence = {
+  (whoBoundary{whoSentence}){block2}
+}
+
+
+
+def __(): Sentence / {Trace} = do trace() 
+def who(): Sentence / {Who} = do who()
+
+
+// ---- Examples that Work ----
+
+def aliceLoves___(): {() => Sentence} => Sentence at {} = traceBoundary {loves(alice, __())}
+val aliceLovesBob: Sentence = (aliceLoves___()){() => bob}
+val aliceLovesJohn: Sentence = (aliceLoves___()){() => john}
+
+// Second Block argument needs to be applied after first has been evaluated, so that bind and his are evaluated in the same order
+val bobLoveshisMother: Sentence = ioBoundary {
+  traceBoundary {loves(__(), his().mother)} {bind(bob)}
+}
+
+// Correctly doesn't connect her to alice
+val herMotherLovesAlice: Sentence = ioBoundary {
+  traceBoundary {loves(Mother(her()), __())} {bind(alice)}
+}
+
+def WhoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {
+  traceBoundary {who()} {alice.saw(__())}
+}
+val aliceSawBob = (WhoDidAliceSee()){() => bob}
+
+// Who can pied-pipe surrounding words
+def whoseMotherDoesAliceLove(): {() => Sentence} => Sentence at {} = whoBoundary {
+  traceBoundary {who().mother()} {alice.loves(__())} 
+}
+val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
+
+def whoSawHisMother(): Sentence = ioBoundary {
+  whoBoundary {
+    traceBoundary {bind(who())} {__().saw(his().mother())}
+  } {() => bob}
+}
+
+// Could bind to who or Father
+def whoseFatherDidAliceSaySawHisMother(): Sentence = ioBoundary {
+  whoBoundary {
+    traceBoundary {bind(Father(who()))} {__().saw(his().mother())}
+  } {() => bob}
+}
+
+// Correctly doesn't connect who with his
+def whoDidHisMotherSee(): Sentence = ioBoundary { 
+  whoBoundary {
+    traceBoundary {bind(who())} {his().mother().saw( __())} 
+  } {() => bob}
+}
+
+
+// ---- Examples that don't work ----
+
+// Can't use IO in incomplete Sentences 
+// def whoLoveshisMother(): {() => Sentence} => Sentence at {} = ioBoundary {traceBoundary{loves(__(), his().mother)}}
+
+
+def main(): Unit = {
+  inspect(whoDidHisMotherSee())
+}
