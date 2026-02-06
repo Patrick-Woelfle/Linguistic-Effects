@@ -13,9 +13,9 @@ interface Who {
 }
 
 
-def traceBoundary{block: () => Sentence / Trace}: {() => Sentence}  => Sentence at {block} = box { {s} =>
+def traceBoundary{traceSentence: () => Sentence / Trace}: {() => Sentence}  => Sentence at {traceSentence} = box { {s} =>
   try {
-    block()
+    traceSentence()
   } with Trace {
     def trace() = { 
       resume(s())
@@ -23,9 +23,9 @@ def traceBoundary{block: () => Sentence / Trace}: {() => Sentence}  => Sentence 
   }
 }
 
-def whoBoundary{whoSentence: () => Sentence / Who} {block: () => Sentence / Trace}: {() => Sentence} => Sentence at {whoSentence, block} = box { {answer} =>
+def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: {() => Sentence} => Sentence at {whoSentence, traceSentence} = box { {answer} =>
   try {
-    (traceBoundary{block}){whoSentence()}
+    (traceBoundary{traceSentence}){whoSentence()}
   } with Who {
     def who() = {
       resume(answer())
@@ -34,16 +34,12 @@ def whoBoundary{whoSentence: () => Sentence / Who} {block: () => Sentence / Trac
 }
 
 // Overload
-def traceBoundary() { block: () => Sentence / Trace} {block2: () => Sentence}: Sentence = {
-  (traceBoundary{block}){block2}
+def traceBoundary() {traceSentence: () => Sentence / Trace} {answer: () => Sentence}: Sentence = {
+  (traceBoundary{traceSentence}){answer}
 }
 
-def traceBoundary() {block2: () => Sentence} { block: () => Sentence / Trace}: Sentence = {
-  (traceBoundary{block}){block2}
-}
-
-def whoBoundary{whoSentence: () => Sentence / Who} {block: () => Sentence / Trace} {block2: () => Sentence}: Sentence = {
-  (whoBoundary{whoSentence} {block}){block2}
+def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace} {answer: () => Sentence}: Sentence = {
+  (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
 
@@ -92,10 +88,14 @@ def whoDidHisMotherSee(): Sentence = ioBoundary {
 }
 
 
+
 // ---- Examples that don't work ----
 
 // Can't use IO in incomplete Sentences 
 // def whoLoveshisMother(): {() => Sentence} => Sentence at {} = ioBoundary {traceBoundary{loves(__(), his().mother)}}
+
+// 
+// def whoSawWho(): Sentence = whoBoundary {who()} {__().saw(who())} {() => bob()}
 
 
 def main(): Unit = {
