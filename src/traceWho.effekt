@@ -13,7 +13,7 @@ interface Who {
 }
 
 
-def traceBoundary() { block: () => Sentence / Trace}: {() => Sentence}  => Sentence at {block} = box { {s} =>
+def traceBoundary{block: () => Sentence / Trace}: {() => Sentence}  => Sentence at {block} = box { {s} =>
   try {
     block()
   } with Trace {
@@ -23,11 +23,11 @@ def traceBoundary() { block: () => Sentence / Trace}: {() => Sentence}  => Sente
   }
 }
 
-def whoBoundary{whoSentence: () => Sentence / Who}: {() => Sentence} => Sentence at {whoSentence} = box { {answer} =>
+def whoBoundary{whoSentence: () => Sentence / Who} {block: () => Sentence / Trace}: {() => Sentence} => Sentence at {whoSentence, block} = box { {answer} =>
   try {
-    whoSentence()
+    (traceBoundary{block}){whoSentence()}
   } with Who {
-    def who() = { 
+    def who() = {
       resume(answer())
     }
   }
@@ -42,8 +42,8 @@ def traceBoundary() {block2: () => Sentence} { block: () => Sentence / Trace}: S
   (traceBoundary{block}){block2}
 }
 
-def whoBoundary{whoSentence: () => Sentence / Who} {block2: () => Sentence}: Sentence = {
-  (whoBoundary{whoSentence}){block2}
+def whoBoundary{whoSentence: () => Sentence / Who} {block: () => Sentence / Trace} {block2: () => Sentence}: Sentence = {
+  (whoBoundary{whoSentence} {block}){block2}
 }
 
 
@@ -68,35 +68,27 @@ val herMotherLovesAlice: Sentence = ioBoundary {
   traceBoundary {loves(Mother(her()), __())} {bind(alice)}
 }
 
-def WhoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {
-  traceBoundary {who()} {alice.saw(__())}
-}
+def WhoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {who()} {alice.saw(__())}
+
 val aliceSawBob = (WhoDidAliceSee()){() => bob}
 
 // Who can pied-pipe surrounding words
-def whoseMotherDoesAliceLove(): {() => Sentence} => Sentence at {} = whoBoundary {
-  traceBoundary {who().mother()} {alice.loves(__())} 
-}
+def whoseMotherDoesAliceLove(): {() => Sentence} => Sentence at {} = whoBoundary {who().mother()} {alice.loves(__())} 
+
 val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
 
 def whoSawHisMother(): Sentence = ioBoundary {
-  whoBoundary {
-    traceBoundary {bind(who())} {__().saw(his().mother())}
-  } {() => bob}
+  whoBoundary {bind(who())} {__().saw(his().mother())} {() => bob}
 }
 
 // Could bind to who or Father
 def whoseFatherDidAliceSaySawHisMother(): Sentence = ioBoundary {
-  whoBoundary {
-    traceBoundary {bind(Father(who()))} {__().saw(his().mother())}
-  } {() => bob}
+  whoBoundary {bind(Father(who()))} {__().saw(his().mother())} {() => bob}
 }
 
 // Correctly doesn't connect who with his
 def whoDidHisMotherSee(): Sentence = ioBoundary { 
-  whoBoundary {
-    traceBoundary {bind(who())} {his().mother().saw( __())} 
-  } {() => bob}
+  whoBoundary {bind(who())} {his().mother().saw( __())} {() => bob}
 }
 
 
@@ -107,5 +99,5 @@ def whoDidHisMotherSee(): Sentence = ioBoundary {
 
 
 def main(): Unit = {
-  inspect(whoDidHisMotherSee())
+  inspect(aliceSawBob)
 }
