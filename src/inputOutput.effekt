@@ -26,10 +26,11 @@ def ioBoundary() { body: => Sentence / {IO} }: Sentence = {
 
 
 // Helper Definitions
-def his(): Sentence / {IO} = do input()
-def her(): Sentence / {IO} = do input()
 def he(): Sentence / {IO} = do input()
-def she(): Sentence / {IO} = do input()
+def she() = he()
+def him() = he()
+def her() = he()
+def his() = he()
 def bind(s: Sentence): Sentence / {IO} = do output(s)
 
 
