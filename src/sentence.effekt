@@ -1,0 +1,26 @@
+module sentence
+
+
+type Sentence {
+  Say(speaker: Sentence, sentence: Sentence)
+  Saw(watcher: Sentence, watchted: Sentence)
+  Father(of: Sentence)
+  Mother(of: Sentence)
+  Is(person: Sentence, predicate: Sentence)
+  ForAll(individual: Sentence, s: Sentence)
+  Exists(individual: Sentence, s: Sentence)
+  Implies(a: Sentence, b: Sentence)
+  Person(name: String)
+  InLoveWith(person: Sentence)
+  Empty()
+}
+
+
+// Helper Definitions
+def loves(lover: Sentence, loved: Sentence): Sentence = Is(lover, InLoveWith(loved))
+def says(speaker: Sentence, sentence: Sentence): Sentence = Say(speaker, sentence)
+def saw(watcher: Sentence, watched: Sentence): Sentence = Saw(watcher, watched)
+def mother(of: Sentence): Sentence = Mother(of)
+val alice = Person("Alice")
+val john = Person("John")
+val bob = Person("Bob")
