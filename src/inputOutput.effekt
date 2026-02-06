@@ -1,0 +1,57 @@
+module inputOutput
+
+import src/sentence
+
+
+interface IO {
+  def input(): Sentence
+  def output(s: Sentence): Sentence
+}
+
+// Doesn't work properly with multible layers, input will reference first ioBoundary it sees, not first do output()
+def ioBoundary() { body: => Sentence / {IO} }: Sentence = {
+  var cache = Empty()
+  try {
+    body()
+  } with IO {
+    def input() = {
+      resume(cache)
+    }
+    def output(s) = {
+      cache = s
+      resume(s)
+    }
+  }
+}
+
+
+// Helper Definitions
+def his(): Sentence / {IO} = do input()
+def her(): Sentence / {IO} = do input()
+def he(): Sentence / {IO} = do input()
+def she(): Sentence / {IO} = do input()
+def bind(s: Sentence): Sentence / {IO} = do output(s)
+
+
+// Examples that work:
+val bobLovesHisMother = ioBoundary {
+  bind(bob).loves(his().mother)
+} 
+
+val BobSaysHeLovesHisMother = ioBoundary {
+  bind(bob).says(he().loves(his().mother))
+} 
+
+val HeLoesBobsMother = ioBoundary {
+  he().loves(bind(bob).mother())
+} 
+
+
+// Examples that don't:
+val BobSaysAliceSaysSheLovesHisMother = ioBoundary {
+  bind(bob).says(bind(alice).says(she().loves(his().mother())))
+} 
+
+
+def main(): Unit =
+  inspect(bobLovesHisMother)
