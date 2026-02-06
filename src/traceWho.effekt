@@ -44,8 +44,14 @@ def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentenc
 
 
 
-def __(): Sentence / {Trace} = do trace() 
+
+
+// For fronted Who
 def who(): Sentence / {Who} = do who()
+def __(): Sentence / {Trace} = do trace() 
+
+// For In-Situ Who
+def who(): Sentence / {Trace} = do trace()
 
 
 // ---- Examples that Work ----
@@ -65,7 +71,6 @@ val herMotherLovesAlice: Sentence = ioBoundary {
 }
 
 def WhoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {who()} {alice.saw(__())}
-
 val aliceSawBob = (WhoDidAliceSee()){() => bob}
 
 // Who can pied-pipe surrounding words
@@ -87,6 +92,8 @@ def whoDidHisMotherSee(): Sentence = ioBoundary {
   whoBoundary {bind(who())} {his().mother().saw( __())} {() => bob}
 }
 
+// Could be better with Multiple Levels
+def whoSawWho(): Sentence = whoBoundary {who()} {__().saw(who())} {() => bob}
 
 
 // ---- Examples that don't work ----
@@ -94,10 +101,10 @@ def whoDidHisMotherSee(): Sentence = ioBoundary {
 // Can't use IO in incomplete Sentences 
 // def whoLoveshisMother(): {() => Sentence} => Sentence at {} = ioBoundary {traceBoundary{loves(__(), his().mother)}}
 
-// 
-// def whoSawWho(): Sentence = whoBoundary {who()} {__().saw(who())} {() => bob()}
+// Since In-Situ-Who and Trace are implemented the same, Superiority doesn't work correctly
+// def whoDidWhoSee__(): Sentence = whoBoundary {who()} {who().saw(__())} {() => bob}
 
 
 def main(): Unit = {
-  inspect(aliceSawBob)
+  inspect(herMotherLovesAlice)
 }
