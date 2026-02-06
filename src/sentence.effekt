@@ -12,6 +12,7 @@ type Sentence {
   Implies(a: Sentence, b: Sentence)
   Person(name: String)
   InLoveWith(person: Sentence)
+  Present(giver: Sentence, receiver: Sentence)
   Empty()
 }
 
@@ -21,6 +22,7 @@ def loves(lover: Sentence, loved: Sentence): Sentence = Is(lover, InLoveWith(lov
 def says(speaker: Sentence, sentence: Sentence): Sentence = Say(speaker, sentence)
 def saw(watcher: Sentence, watched: Sentence): Sentence = Saw(watcher, watched)
 def mother(of: Sentence): Sentence = Mother(of)
+def present(giver: Sentence, receiver: Sentence): Sentence = Present(giver, receiver)
 val alice = Person("Alice")
 val john = Person("John")
 val bob = Person("Bob")
