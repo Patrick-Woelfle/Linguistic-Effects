@@ -1,4 +1,4 @@
-module inputOutput
+module main
 
 import src/sentence
 
