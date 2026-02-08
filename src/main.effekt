@@ -1,0 +1,7 @@
+module inputOutput
+
+import src/sentence
+
+def main(): = {
+  println("a")
+}
