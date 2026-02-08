@@ -2,6 +2,6 @@ module inputOutput
 
 import src/sentence
 
-def main(): = {
+def main() = {
   println("a")
 }
