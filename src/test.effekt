@@ -1,0 +1,9 @@
+module src/test
+
+import test
+
+def main() = mainSuite("test") {
+  test("Hello world") {
+    assertEqual("Hello, world!", "Hello, world!")
+  }
+}
