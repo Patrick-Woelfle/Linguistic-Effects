@@ -3,6 +3,7 @@ module quantificationMultipleLevels
 import src/sentence
 
 
+// Could also be solved by splitting every and a into two different interfaces
 interface QuantificationMultipleLevels {
   // Corresponds to every ___
   def every(predicate: Sentence, level: Int): Sentence
@@ -61,7 +62,7 @@ def finalQuantificationBoundary { body: => Sentence / QuantificationMultipleLeve
 }
 
 
-// Examples
+// --- Examples that work ---
 val someoneLovesEveryone: Sentence = finalQuantificationBoundary(){
   quantificationBoundary(2) {
     quantificationBoundary(1){

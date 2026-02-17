@@ -8,7 +8,6 @@ interface IO {
   def output(s: Sentence): Sentence
 }
 
-// Doesn't work properly with multible layers, input will reference first ioBoundary it sees, not first do output()
 def ioBoundary() { body: => Sentence / {IO} }: Sentence = {
   var cache = Empty()
   try {
@@ -34,7 +33,8 @@ def his() = he()
 def bind(s: Sentence): Sentence / {IO} = do output(s)
 
 
-// Examples that work:
+// --- Examples that work ---
+
 val bobLovesHisMother = ioBoundary {
   bind(bob).loves(his().mother)
 } 
@@ -48,7 +48,9 @@ val HeLoesBobsMother = ioBoundary {
 } 
 
 
-// Examples that don't:
+// --- Examples that don't ---
+
+// Always uses the latest bind, would have to be on different levels
 val BobSaysAliceSaysSheLovesHisMother = ioBoundary {
   bind(bob).says(bind(alice).says(she().loves(his().mother())))
 } 
