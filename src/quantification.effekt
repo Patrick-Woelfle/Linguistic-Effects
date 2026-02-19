@@ -12,13 +12,12 @@ interface Quantification {
   // Corresponds to everyone/someone
   def everyone(): Sentence
   def someone(): Sentence
-  
 }
 
-def quantificationBoundary { body: => Sentence / Quantification}: Sentence = {
+def quantificationBoundary(personLabel: String) { body: {Quantification} => Sentence / Quantification}: Sentence = {
   var counter = 0
-  def fresh(): Sentence = { val x = Person("x" ++ show(counter)); counter = counter + 1; x }
-  try { body() } with Quantification {
+  def fresh(): Sentence = { val x = Person(personLabel ++ show(counter)); counter = counter + 1; x }
+  try { body{cap} } with cap: Quantification {
     def everyone() = {
       val x = fresh()
       ForAll(x, resume(x))
@@ -38,6 +37,15 @@ def quantificationBoundary { body: => Sentence / Quantification}: Sentence = {
   }
 }
 
+// Overload for multible levels
+def quantificationBoundary { body: => Sentence / Quantification}: Sentence = {
+  quantificationBoundary{ {_} => body()}
+}
+
+def quantificationBoundary { body: {Quantification} => Sentence / Quantification}: Sentence = {
+  quantificationBoundary("x"){body}
+}
+
 
 // Helper Definitions
 def everyone() = do everyone()
@@ -50,11 +58,6 @@ def every(predicate: Sentence) = do every(predicate)
 
 val aliceLovesEveryonesMother: Sentence = quantificationBoundary{
   alice.loves(everyone().mother())
-}
-
-// Only gives obvious meaning, solution in quantificationMultipleLevels 
-val someoneLovesEveryone: Sentence = quantificationBoundary{
-  someone().loves(everyone())
 }
 
 // Combination with IO
@@ -77,7 +80,14 @@ def whosePresentforhimDideveryonesFatherSee{answer: () => Sentence}: Sentence = 
   }
 }
 
+// Uses multiple levels
+val someoneLovesEveryone: Sentence = quantificationBoundary("x"){ {outer} =>  
+  quantificationBoundary("y") { {inner} =>
+      inner.someone().loves(outer.everyone)
+  }
+}
+
 
 def main(): Unit = {
-  inspect(whosePresentforhimDideveryonesFatherSee{() => bob})
+  println(show(someoneLovesEveryone))
 }
