@@ -8,11 +8,11 @@ interface IO {
   def output(s: Sentence): Sentence
 }
 
-def ioBoundary() { body: => Sentence / {IO} }: Sentence = {
+def ioBoundary() { body: {IO} => Sentence / {IO} }: Sentence = {
   var cache = Empty()
   try {
-    body()
-  } with IO {
+    body{cap}
+  } with cap: IO {
     def input() = {
       resume(cache)
     }
@@ -21,6 +21,10 @@ def ioBoundary() { body: => Sentence / {IO} }: Sentence = {
       resume(s)
     }
   }
+}
+
+def ioBoundary() { body: => Sentence / {IO}}: Sentence = {
+  ioBoundary{ {_} => body()}
 }
 
 
