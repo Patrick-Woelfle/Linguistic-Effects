@@ -28,11 +28,11 @@ def quantificationBoundary(personLabel: String) { body: {Quantification} => Sent
     }
     def a(predicate) = {
       val x = fresh()
-      Exists(x, Implies(Is(x, predicate), resume(x)))
+      And(And(Exists(x), Is(x, predicate)), resume(x))
     }
     def someone() = {
       val x = fresh()
-      Exists(x, resume(x))
+      And(Exists(x), resume(x))
     }
   }
 }

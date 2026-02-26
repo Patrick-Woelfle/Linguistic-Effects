@@ -5,6 +5,7 @@ import src/sentence
 
 interface Implicature {
   def add(sentence1: Sentence, sentence2: Sentence): Sentence
+  def assume(sentence1: Sentence): Sentence
 }
 
 def implicatureBoundary{ body: {Implicature} => Sentence / Implicature}: Sentence = {
@@ -13,6 +14,9 @@ def implicatureBoundary{ body: {Implicature} => Sentence / Implicature}: Sentenc
   } with cap: Implicature {
     def add(sentence1: Sentence, sentence2: Sentence) = {
       And(resume(sentence1), sentence2)
+    } 
+    def assume(sentence1: Sentence) = {
+      And(Exists(sentence1), resume(sentence1))
     }
   }
 }
@@ -23,6 +27,7 @@ def implicatureBoundary { body: => Sentence / Implicature}: Sentence = {
 
 // Helper Definitions
 def whoIs(sentence1: Sentence, sentence2: Sentence) = do add(sentence1, sentence2)
+def assume(sentence1: Sentence) = do assume(sentence1)
 
 
 // --- Examples that work ---
