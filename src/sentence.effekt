@@ -13,6 +13,7 @@ type Sentence {
   Person(name: String)
   InLoveWith(person: Sentence)
   Present(giver: Sentence, receiver: Sentence)
+  And(sentence1: Sentence, sentence2: Sentence)
   Empty()
 }
 

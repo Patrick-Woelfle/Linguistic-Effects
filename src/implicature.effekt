@@ -1,0 +1,37 @@
+module implicature
+
+import src/sentence
+
+
+interface Implicature {
+  def add(sentence1: Sentence, sentence2: Sentence): Sentence
+}
+
+def implicatureBoundary{ body: {Implicature} => Sentence / Implicature}: Sentence = {
+  try {
+    body{cap}
+  } with cap: Implicature {
+    def add(sentence1: Sentence, sentence2: Sentence) = {
+      And(resume(sentence1), sentence2)
+    }
+  }
+}
+
+def implicatureBoundary { body: => Sentence / Implicature}: Sentence = {
+  implicatureBoundary{ {_} => body()}
+}
+
+// Helper Definitions
+def whoIs(sentence1: Sentence, sentence2: Sentence) = do add(sentence1, sentence2)
+
+
+// --- Examples that work ---
+
+val johnLovesBobWhoIsAlicesFather: Sentence = implicatureBoundary {
+  john.loves(whoIs(bob, Father(alice)))
+  }
+
+
+def main(): Unit = {
+  println(show(johnLovesBobWhoIsAlicesFather))
+}
