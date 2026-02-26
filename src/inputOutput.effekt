@@ -3,19 +3,32 @@ module inputOutput
 import src/sentence
 
 
-interface IO {
+interface Input {
   def input(): Sentence
-  def output(s: Sentence): Sentence
 }
 
-def ioBoundary() { body: {IO} => Sentence / {IO} }: Sentence = {
+interface Output{
+  def output(a: Sentence): Sentence
+}
+
+
+def inputBoundary{body: () => Sentence / {Input}}: Sentence => Sentence at {body} = box { a =>
+  try {
+      body()
+  } with Input {
+    def input() = resume(a)
+  }
+}
+
+def ioBoundary{body: {Input, Output} => Sentence / {Input, Output}}: Sentence = {
   var cache = Empty()
   try {
-    body{cap}
-  } with cap: IO {
+    body{capInput} {capOutput}
+  } with capInput: Input {
     def input() = {
       resume(cache)
     }
+  } with capOutput: Output {
     def output(s) = {
       cache = s
       resume(s)
@@ -23,18 +36,18 @@ def ioBoundary() { body: {IO} => Sentence / {IO} }: Sentence = {
   }
 }
 
-def ioBoundary() { body: => Sentence / {IO}}: Sentence = {
-  ioBoundary{ {_} => body()}
+def ioBoundary() { body: => Sentence / {Input, Output}}: Sentence = {
+  ioBoundary{ {_, _} => body()}
 }
 
 
 // Helper Definitions
-def he(): Sentence / {IO} = do input()
+def he(): Sentence / {Input, Output} = do input()
 def she() = he()
 def him() = he()
 def her() = he()
 def his() = he()
-def bind(s: Sentence): Sentence / {IO} = do output(s)
+def bind(s: Sentence): Sentence / {Input, Output} = do output(s)
 
 
 // --- Examples that work ---
@@ -47,16 +60,18 @@ val BobSaysHeLovesHisMother = ioBoundary {
   bind(bob).says(he().loves(his().mother))
 } 
 
-val HeLoesBobsMother = ioBoundary {
+val HeLovesBobsMother = ioBoundary {
   he().loves(bind(bob).mother())
 } 
 
+val BobSaysAliceSaysSheLovesHisMother = ioBoundary { {outer} =>
+  ioBoundary { {inner} => 
+    outer.output(bob).says(inner.output(alice).says(inner.input().loves(outer.input().mother())))
+  }
+} 
 
-// --- Examples that don't ---
-
-// Always uses the latest bind, would have to be on different levels
-val BobSaysAliceSaysSheLovesHisMother = ioBoundary {
-  bind(bob).says(bind(alice).says(she().loves(his().mother())))
+def herMother(): Sentence => Sentence / {Input} at {} = {
+  her().Mother()
 } 
 
 
