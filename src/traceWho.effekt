@@ -42,11 +42,16 @@ def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentenc
   (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
+def whoBoundary {answer: () => Sentence} {whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: Sentence = {
+  (whoBoundary{whoSentence} {traceSentence}){answer}
+}
+
 
 
 // For fronted Who
 def who(): Sentence / {Who} = do who()
-def __(): Sentence / {Trace} = do trace() 
+def __(): Sentence / {Trace} = do trace()
+def whose(): Sentence / {Who} = who() 
 
 // For In-Situ Who
 def who(): Sentence / {Trace} = do trace()
@@ -101,9 +106,11 @@ def bobLovesHisMother(): Sentence = ioBoundary { (whoLoveshisMother()){() => bin
 // ---- Examples that don't work ----
 
 // Since In-Situ-Who and Trace are implemented the same, Superiority doesn't work correctly
-// def whoDidWhoSee__(): Sentence = whoBoundary {who()} {who().saw(__())} {() => bob}
+def whoDidWhoSee__(): Sentence = whoBoundary {who()} {who().saw(__())} {() => bob}
 
+// Doesn't work, because who can't select out of a set of people, interesting because john can bind he
+def whoOfJohnsFriendsdoesHeLike__(): Sentence = <>
 
 def main(): Unit = {
-  inspect(bobLovesHisMother())
+  println(show(whoDidWhoSee__()))
 }
