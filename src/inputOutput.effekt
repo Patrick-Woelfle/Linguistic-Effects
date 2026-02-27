@@ -11,6 +11,7 @@ interface Output{
   def output(a: Sentence): Sentence
 }
 
+effect IO = {Input, Output} 
 
 def inputBoundary{body: () => Sentence / {Input}}: Sentence => Sentence at {body} = box { a =>
   try {
@@ -20,7 +21,7 @@ def inputBoundary{body: () => Sentence / {Input}}: Sentence => Sentence at {body
   }
 }
 
-def ioBoundary{body: {Input, Output} => Sentence / {Input, Output}}: Sentence = {
+def ioBoundary{body: {Input} {Output} => Sentence / {Input, Output}}: Sentence = {
   var cache = Empty()
   try {
     body{capInput} {capOutput}
@@ -37,7 +38,7 @@ def ioBoundary{body: {Input, Output} => Sentence / {Input, Output}}: Sentence = 
 }
 
 def ioBoundary() { body: => Sentence / {Input, Output}}: Sentence = {
-  ioBoundary{ {_, _} => body()}
+  ioBoundary{ {_} {_} => body()}
 }
 
 
@@ -64,16 +65,16 @@ val HeLovesBobsMother = ioBoundary {
   he().loves(bind(bob).mother())
 } 
 
-val BobSaysAliceSaysSheLovesHisMother = ioBoundary { {outer} =>
-  ioBoundary { {inner} => 
-    outer.output(bob).says(inner.output(alice).says(inner.input().loves(outer.input().mother())))
+val BobSaysAliceSaysSheLovesHisMother = ioBoundary { {inputOuter} {outputOuter} =>
+  ioBoundary { {inputInner} {outputInner} =>
+    says(outputOuter.output(bob), outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
   }
 } 
 
-def herMother(): Sentence => Sentence / {Input} at {} = {
-  her().Mother()
-} 
+// def herMother(): Sentence => Sentence / {Input} at {} = box {
+//   her().Mother()
+// } 
 
 
 def main(): Unit =
-  inspect(bobLovesHisMother)
+  println(show(BobSaysAliceSaysSheLovesHisMother))
