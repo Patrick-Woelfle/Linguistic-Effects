@@ -1,9 +1,51 @@
 module src/test
 
 import test
+import src/sentence
+import src/inputOutput
+import src/quantification
+import src/implicature
+import src/traceWho
 
 def main() = mainSuite("test") {
-  test("Hello world") {
-    assertEqual("Hello, world!", "Hello, world!")
+  test("Simple Pronoun Binding") {
+    assertEqual( 
+        ioBoundary { 
+          bind(bob).loves(his().mother)
+        }, 
+        bob.loves(bob.mother)
+    )
+  }
+  test("Douple Pronoun Binding") {
+    assertEqual( 
+        ioBoundary { 
+          bind(bob).says(he().loves(his().mother))
+        }, 
+        bob.says(bob.loves(bob.mother))
+    )
+  }
+  test("Pronoun Usage before binding") {
+    assertEqual( 
+        ioBoundary { 
+          he().loves(bind(bob).mother())
+        }, 
+        Empty().loves(bob.mother())
+    )
+  }
+  test("Input Output over multiple Levels") {
+    assertEqual( 
+      ioBoundary { {inputOuter} {outputOuter} =>
+        ioBoundary { {inputInner} {outputInner} =>
+          outputOuter.output(bob).says(outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
+        }
+      }, 
+      bob.says(alice).says(alice).loves(bob.mother())
+    )
+  }
+  test("Input without Output") {
+    def herMother(): Sentence => Sentence at {} = inputBoundary {
+      her().Mother()
+    }
+    assertEqual(herMother()(alice), alice.Mother())
   }
 }
