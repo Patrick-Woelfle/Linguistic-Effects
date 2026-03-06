@@ -9,14 +9,11 @@ type Mixed {
   Computation(f: Mixed => Mixed at {})
 }
 
-
 interface Yield {
   def yield(): Mixed
 }
 
-
-
-def example(): Mixed = {
+def addToFive(): Mixed = {
   try {
     Value(5).add(do yield())
   } with Yield {
@@ -51,5 +48,5 @@ def getValue(a: Mixed): Int = {
 }
 
 def main() = {
-  println(show(getComputation(example())(Value(1))))
+  println(show(getComputation(addToFive())(Value(1))))
 }
