@@ -43,12 +43,12 @@ def ioBoundary() { body: => Sentence / {Input, Output}}: Sentence = {
 
 
 // Helper Definitions
-def he(): Sentence / {Input, Output} = do input()
+def he(): Sentence / {Input} = do input()
 def she() = he()
 def him() = he()
 def her() = he()
 def his() = he()
-def bind(s: Sentence): Sentence / {Input, Output} = do output(s)
+def bind(s: Sentence): Sentence / {Output} = do output(s)
 
 
 // --- Examples that work ---
@@ -71,9 +71,9 @@ val BobSaysAliceSaysSheLovesHisMother = ioBoundary { {inputOuter} {outputOuter} 
   }
 } 
 
-// def herMother(): Sentence => Sentence / {Input} at {} = box {
-//   her().Mother()
-// } 
+def herMother(): Sentence => Sentence at {} = inputBoundary {
+  her().Mother()
+} 
 
 
 def main(): Unit =
