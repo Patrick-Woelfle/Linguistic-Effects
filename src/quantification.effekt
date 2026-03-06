@@ -3,6 +3,7 @@ module quantification
 import src/sentence
 import src/inputOutput
 import src/traceWho
+import src/implicature
 
 
 interface Quantification {
@@ -28,11 +29,11 @@ def quantificationBoundary(personLabel: String) { body: {Quantification} => Sent
     }
     def a(predicate) = {
       val x = fresh()
-      Exists(x, Implies(Is(x, predicate), resume(x)))
+      And(And(Exists(x), Is(x, predicate)), resume(x))
     }
     def someone() = {
       val x = fresh()
-      Exists(x, resume(x))
+      And(Exists(x), resume(x))
     }
   }
 }
@@ -87,7 +88,14 @@ val someoneLovesEveryone: Sentence = quantificationBoundary("x"){ {outer} =>
   }
 }
 
+def johnIsAmanWhoseOpinionOfHerEveryWomanRespects(): Sentence = implicatureBoundary {
+  ioBoundary {
+    quantificationBoundary {
+      whoBoundary {john.is!(Man())} {whose().OpinionOf(her())} {bind(every(Woman())).Respects(__())} 
+    }
+  }
+}
 
 def main(): Unit = {
-  println(show(someoneLovesEveryone))
+  println(show(johnIsAmanWhoseOpinionOfHerEveryWomanRespects()))
 }
