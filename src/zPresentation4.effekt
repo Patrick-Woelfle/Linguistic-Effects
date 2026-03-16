@@ -1,0 +1,22 @@
+module presentation
+
+import src/sentence
+import src/zPresentation1
+import src/zPresentation2
+
+
+val everyonesFatherLovesTheirMother: Sentence = ioBoundary {
+  quantificationBoundary {
+    do output(do everyone()).Father().loves(do input().Mother())
+  }
+}
+
+val herFatherLovesEveryonesMother: Sentence = ioBoundary {
+  quantificationBoundary {
+    do input().Father().loves(do output(do everyone().Mother()))
+  }
+}
+
+def main() = {
+  println(show(everyonesFatherLovesTheirMother))
+}

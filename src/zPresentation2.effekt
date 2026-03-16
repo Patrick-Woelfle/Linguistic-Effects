@@ -1,0 +1,34 @@
+module presentation
+
+import src/sentence
+
+
+interface Quantification {
+  def everyone(): Sentence
+  def every(predicate: Sentence): Sentence
+}
+
+def quantificationBoundary() { body: () => Sentence / Quantification}: Sentence = {
+  var counter = 0
+  def fresh(): Sentence = { val x = Person("x" ++ show(counter)); counter = counter + 1; x }
+  try { 
+    body() 
+  } with Quantification {
+    def everyone() = {
+      val x = fresh()
+      ForAll(x, resume(x))
+    }
+    def every(predicate) = {
+      val x = fresh()
+      ForAll(x, Implies(Is(Person("x"), predicate), resume(x)))
+    }
+  }
+}
+
+val aliceRespectsEveryone = quantificationBoundary {
+  alice.respects(do everyone())
+}
+
+def main() = {
+  println(show(aliceRespectsEveryone))
+}

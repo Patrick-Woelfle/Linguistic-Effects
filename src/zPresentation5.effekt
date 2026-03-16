@@ -1,0 +1,50 @@
+module presentation
+
+import src/sentence
+
+interface Trace {
+  def trace(): Sentence
+}
+
+interface Who {
+  def who(): Sentence
+}
+
+def traceBoundary{traceSentence: () => Sentence / Trace}: {() => Sentence}  => Sentence at {traceSentence} = box { {s} =>
+  try {
+    traceSentence()
+  } with Trace {
+    def trace() = { 
+      resume(s())
+    }
+  }
+}
+
+def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: {() => Sentence} => Sentence at {whoSentence, traceSentence} = box { {answer} =>
+  try {
+    (traceBoundary{traceSentence}){whoSentence()}
+  } with Who {
+    def who() = {
+      resume(answer())
+    }
+  }
+}
+
+def whoBoundary {answer: () => Sentence} {whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: Sentence = {
+  (whoBoundary{whoSentence} {traceSentence}){answer}
+}
+
+
+def who(): Sentence / {Who} = do who()
+def __(): Sentence / {Trace} = do trace()
+
+def aliceLoves___(): {() => Sentence} => Sentence at {} = traceBoundary {loves(alice, __())}
+val aliceLovesBob: Sentence = (aliceLoves___()){() => bob}
+
+def whoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {who()} {alice.saw(__())}
+val aliceSawBob = (whoDidAliceSee()){() => bob}
+
+def main(): Unit = {
+  println(show(aliceLovesBob))
+  println(show(aliceSawBob))
+}

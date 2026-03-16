@@ -1,0 +1,32 @@
+module presentation
+
+import src/sentence
+
+interface Implicature {
+  def add(sentence1: Sentence, sentence2: Sentence): Sentence
+  def is_(sentence1: Sentence, predicate: Sentence): Sentence
+}
+
+def implicatureBoundary{ body: () => Sentence / Implicature}: Sentence = {
+  try {
+    body()
+  } with Implicature {
+    def add(sentence1: Sentence, sentence2: Sentence) = {
+      And(resume(sentence1), sentence2)
+    } 
+    def is_(sentence1: Sentence, predicate: Sentence) = {
+      And(resume(sentence1), Is(sentence1, predicate))
+    }
+  }
+}
+
+def whoIs(sentence1: Sentence, sentence2: Sentence) = do add(sentence1, sentence2)
+def is_(sentence1: Sentence, predicate: Sentence) = do is_(sentence1, predicate)
+
+val johnLovesBobWhoIsAlicesFather: Sentence = implicatureBoundary {
+  john.loves(whoIs(bob, Father(alice)))
+}
+
+def main(): Unit = {
+  println(show(johnLovesBobWhoIsAlicesFather))
+}

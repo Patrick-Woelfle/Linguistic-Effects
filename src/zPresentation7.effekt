@@ -1,0 +1,25 @@
+module presentation
+
+import src/sentence
+import src/zPresentation1
+import src/zPresentation2
+import src/zPresentation5
+import src/zPresentation6
+
+def whose(): Sentence / {Who} = do who()
+def bind(s: Sentence): Sentence / {Output} = do output(s)
+def her(): Sentence / {Input} = do input()
+def every(predicate: Sentence) = do every(predicate)
+
+
+val johnIsAmanWhoseOpinionOfHerEveryWomanRespects: Sentence = implicatureBoundary {
+  ioBoundary {
+    quantificationBoundary {
+      whoBoundary {john.is_(Man())} {whose().OpinionOf(her())} {bind(every(Woman())).Respects(__())} 
+    }
+  }
+}
+
+def main(): Unit = {
+  println(show(johnIsAmanWhoseOpinionOfHerEveryWomanRespects))
+}
