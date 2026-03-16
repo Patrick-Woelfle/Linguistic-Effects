@@ -29,11 +29,11 @@ def quantificationBoundary(personLabel: String) { body: {Quantification} => Sent
     }
     def a(predicate) = {
       val x = fresh()
-      And(And(Exists(x), Is(x, predicate)), resume(x))
+      Exists(x, And(Is(x, predicate), resume(x)))
     }
     def someone() = {
       val x = fresh()
-      And(Exists(x), resume(x))
+      Exists(x, resume(x))
     }
   }
 }
@@ -91,7 +91,7 @@ val someoneLovesEveryone: Sentence = quantificationBoundary("x"){ {outer} =>
 def johnIsAmanWhoseOpinionOfHerEveryWomanRespects(): Sentence = implicatureBoundary {
   ioBoundary {
     quantificationBoundary {
-      whoBoundary {john.is!(Man())} {whose().OpinionOf(her())} {bind(every(Woman())).Respects(__())} 
+      whoBoundary {john.is_(Man())} {whose().OpinionOf(her())} {bind(every(Woman())).Respects(__())} 
     }
   }
 }

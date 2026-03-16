@@ -12,7 +12,7 @@ type Sentence {
   Respects(person1: Sentence, person2: Sentence)
   Is(person: Sentence, predicate: Sentence)
   ForAll(individual: Sentence, s: Sentence)
-  Exists(individual: Sentence)
+  Exists(individual: Sentence, s: Sentence)
   Implies(a: Sentence, b: Sentence)
   Person(name: String)
   InLoveWith(person: Sentence)
@@ -21,9 +21,25 @@ type Sentence {
   Empty()
 }
 
+// type Sentence2 [V, N] {
+  
+// }
+
+
+// type Noun {
+//   NP(dt: String, n: Noun)
+//   Person2(name: String)
+// }
+
+
+// type Relation {
+//   InLoveWith2(person: Sentence)
+// }
+
 
 // Helper Definitions
 def loves(lover: Sentence, loved: Sentence): Sentence = Is(lover, InLoveWith(loved))
+def respects(respecter: Sentence, respected: Sentence): Sentence = Respects(respecter, respected)
 def says(speaker: Sentence, sentence: Sentence): Sentence = Say(speaker, sentence)
 def saw(watcher: Sentence, watched: Sentence): Sentence = Saw(watcher, watched)
 def mother(of: Sentence): Sentence = Mother(of)
@@ -31,3 +47,26 @@ def present(giver: Sentence, receiver: Sentence): Sentence = Present(giver, rece
 val alice = Person("Alice")
 val john = Person("John")
 val bob = Person("Bob")
+
+
+// def prettyPrinter(s: Sentence, spaces: String): String = {
+//   s match {
+//     case Say(speaker, sentence) => prettyPrinter(speaker, spaces ++ "   ") ++ "says " ++ prettyPrinter(speaker, spaces ++ "   ")
+//     case Saw(watcher, watchted)
+//     case Father(of)
+//     case Mother(of)
+//     case Man()
+//     case Woman()
+//     case OpinionOf(person1, person2)
+//     case Respects(person1, person2)
+//     case Is(person, predicate)
+//     case ForAll(individual, s)
+//     case Exists(individual, s)
+//     case Implies(a, b)
+//     case Person(name)
+//     case InLoveWith(person)
+//     case Present(giver, receiver)
+//     case And(sentence1, sentence2)
+//     case Empty()
+//   }
+// }
