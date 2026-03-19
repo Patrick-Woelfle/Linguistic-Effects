@@ -9,43 +9,43 @@ import src/traceWho
 
 def main() = mainSuite("test") {
   test("Simple Pronoun Binding") {
-    assertEqual( 
+    assert( 
         ioBoundary { 
           bind(bob).loves(his().mother)
-        }, 
-        bob.loves(bob.mother)
+        }.show(), 
+        bob.loves(bob.mother).show()
     )
   }
   test("Douple Pronoun Binding") {
-    assertEqual( 
+    assert( 
         ioBoundary { 
           bind(bob).says(he().loves(his().mother))
-        }, 
-        bob.says(bob.loves(bob.mother))
+        }.show(), 
+        bob.says(bob.loves(bob.mother)).show()
     )
   }
   test("Pronoun Usage before binding") {
-    assertEqual( 
+    assert( 
         ioBoundary { 
           he().loves(bind(bob).mother())
-        }, 
-        Empty().loves(bob.mother())
+        }.show(), 
+        Empty().loves(bob.mother()).show()
     )
   }
   test("Input Output over multiple Levels") {
-    assertEqual( 
+    assert( 
       ioBoundary { {inputOuter} {outputOuter} =>
         ioBoundary { {inputInner} {outputInner} =>
           outputOuter.output(bob).says(outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
         }
-      }, 
-      bob.says(alice).says(alice).loves(bob.mother())
+      }.show(), 
+      bob.says(alice.says(alice.loves(bob.mother()))).show()
     )
   }
   test("Input without Output") {
     def herMother(): Sentence => Sentence at {} = inputBoundary {
       her().Mother()
     }
-    assertEqual(herMother()(alice), alice.Mother())
+    assert(herMother()(alice).show(), alice.Mother().show())
   }
 }
