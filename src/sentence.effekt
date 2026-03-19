@@ -19,6 +19,7 @@ type Sentence {
   Present(giver: Sentence, receiver: Sentence)
   And(sentence1: Sentence, sentence2: Sentence)
   Empty()
+  Likes(person1: Sentence, person2: Sentence)
 }
 
 // type Sentence2 [V, N] {
@@ -39,6 +40,7 @@ type Sentence {
 
 // Helper Definitions
 def loves(lover: Sentence, loved: Sentence): Sentence = Is(lover, InLoveWith(loved))
+def likes(person1: Sentence, person2: Sentence): Sentence = Likes(person1, person2)
 def respects(respecter: Sentence, respected: Sentence): Sentence = Respects(respecter, respected)
 def says(speaker: Sentence, sentence: Sentence): Sentence = Say(speaker, sentence)
 def saw(watcher: Sentence, watched: Sentence): Sentence = Saw(watcher, watched)
@@ -49,24 +51,25 @@ val john = Person("John")
 val bob = Person("Bob")
 
 
-// def prettyPrinter(s: Sentence, spaces: String): String = {
-//   s match {
-//     case Say(speaker, sentence) => prettyPrinter(speaker, spaces ++ "   ") ++ "says " ++ prettyPrinter(speaker, spaces ++ "   ")
-//     case Saw(watcher, watchted)
-//     case Father(of)
-//     case Mother(of)
-//     case Man()
-//     case Woman()
-//     case OpinionOf(person1, person2)
-//     case Respects(person1, person2)
-//     case Is(person, predicate)
-//     case ForAll(individual, s)
-//     case Exists(individual, s)
-//     case Implies(a, b)
-//     case Person(name)
-//     case InLoveWith(person)
-//     case Present(giver, receiver)
-//     case And(sentence1, sentence2)
-//     case Empty()
-//   }
-// }
+def format(s: Sentence): String = {
+  s match {
+    case Say(speaker, sentence) => format(speaker) ++ " says (" ++ format(sentence) ++ ")"
+    case Saw(watcher, watched) => format(watcher) ++ " saw " ++ format(watched)
+    case Father(of) => format(of) ++ "'s father"
+    case Mother(of) => format(of) ++ "'s mother"
+    case Man() => "man"
+    case Woman() => "woman"
+    case OpinionOf(person1, person2) => "opinion of " ++ format(person1) ++ " about " ++ format(person2)
+    case Respects(person1, person2) => format(person1) ++ " respects " ++ format(person2)
+    case Is(person, predicate) => format(person) ++ " is " ++ format(predicate)
+    case ForAll(individual, sentence) => "forall " ++ format(individual) ++ ". " ++ format(sentence)
+    case Exists(individual, sentence) => "exists " ++ format(individual) ++ ". " ++ format(sentence)
+    case Implies(a, b) => "(" ++ format(a) ++ ") -> (" ++ format(b) ++ ")"
+    case Person(name) => name
+    case InLoveWith(person) => "in love with " ++ format(person)
+    case Present(giver, receiver) => format(giver) ++ " gives a present to " ++ format(receiver)
+    case And(sentence1, sentence2) => "(" ++ format(sentence1) ++ ") and (" ++ format(sentence2) ++ ")"
+    case Empty() => "???"
+    case Likes(person1, person2) => format(person1) ++ " likes " ++ format(person2)
+  }
+}

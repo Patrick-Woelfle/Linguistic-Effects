@@ -75,6 +75,3 @@ def herMother(): Sentence => Sentence at {} = inputBoundary {
   her().Mother()
 } 
 
-
-def main(): Unit =
-  println(show(BobSaysAliceSaysSheLovesHisMother))

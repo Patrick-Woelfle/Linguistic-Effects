@@ -109,8 +109,5 @@ def bobLovesHisMother(): Sentence = ioBoundary { (whoLoveshisMother()){() => bin
 def whoDidWhoSee__(): Sentence = whoBoundary {who()} {who().saw(__())} {() => bob}
 
 // Doesn't work, because who can't select out of a set of people, interesting because john can bind he
-def whoOfJohnsFriendsdoesHeLike__(): Sentence = <>
+def whichOfJohnsFriendsdoesHeLike__(): Sentence = <>
 
-def main(): Unit = {
-  println(show(whoDidWhoSee__()))
-}

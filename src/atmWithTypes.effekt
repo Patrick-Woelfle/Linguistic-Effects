@@ -47,6 +47,3 @@ def getValue(a: Mixed): Int = {
   }
 }
 
-def main() = {
-  println(show(getComputation(addToFive())(Value(1))))
-}
