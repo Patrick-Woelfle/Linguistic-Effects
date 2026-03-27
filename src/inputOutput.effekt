@@ -3,33 +3,33 @@ module inputOutput
 import src/sentence
 
 
-interface Input {
-  def input(): Sentence
+interface Input[L] {
+  def input(): Sentence[L]
 }
 
-interface Output{
-  def output(a: Sentence): Sentence
+interface Output[L]{
+  def output(a: Sentence[L]): Sentence[L]
 }
+  
+effect IO[L] = {Input[L], Output[L]} 
 
-effect IO = {Input, Output} 
-
-def inputBoundary{body: () => Sentence / {Input}}: Sentence => Sentence at {body} = box { a =>
+def inputBoundary[L]{body: () => Sentence[L] / {Input[L]}}: Sentence[L] => Sentence[L] at {body} = box { a =>
   try {
       body()
-  } with Input {
+  } with Input[L] {
     def input() = resume(a)
   }
 }
 
-def ioBoundary{body: {Input} {Output} => Sentence / {Input, Output}}: Sentence = {
+def ioBoundary[L]{body: {Input[L]} {Output[L]} => Sentence[L] / {Input[L], Output[L]}}: Sentence[L] = {
   var cache = Empty()
   try {
     body{capInput} {capOutput}
-  } with capInput: Input {
+  } with capInput: Input[L] {
     def input() = {
       resume(cache)
     }
-  } with capOutput: Output {
+  } with capOutput: Output[L] {
     def output(s) = {
       cache = s
       resume(s)
@@ -37,41 +37,44 @@ def ioBoundary{body: {Input} {Output} => Sentence / {Input, Output}}: Sentence =
   }
 }
 
-def ioBoundary() { body: => Sentence / {Input, Output}}: Sentence = {
-  ioBoundary{ {_} {_} => body()}
+def ioBoundary[L]() { body: => Sentence[L] / {Input[L], Output[L]}}: Sentence[L] = {
+  ioBoundary[L]{ {_} {_} => body()}
 }
 
 
 // Helper Definitions
-def he(): Sentence / {Input} = do input()
+def he[L](): Sentence[L] / {Input[L]} = do input()
+def he() = he[Ls]()
 def she() = he()
 def him() = he()
 def her() = he()
 def his() = he()
-def bind(s: Sentence): Sentence / {Output} = do output(s)
+def bind[L](s: Sentence[L]): Sentence[L] / {Output[L]} = do output(s)
+def bind(s: Sentence[Ls]) = bind[Ls](s)
 
 
 // --- Examples that work ---
 
-val bobLovesHisMother = ioBoundary {
-  bind(bob).loves(his().mother)
+val bobLovesHisMother = ioBoundary[Ls] {
+  bind[Ls](bob).loves(his().mother)
 } 
 
-val BobSaysHeLovesHisMother = ioBoundary {
-  bind(bob).says(he().loves(his().mother))
+val BobSaysHeLovesHisMother = ioBoundary[Ls] {
+  bind[Ls](bob).says(he[Ls]().loves(his().mother))
 } 
 
-val HeLovesBobsMother = ioBoundary {
-  he().loves(bind(bob).mother())
+val HeLovesBobsMother = ioBoundary[Ls] {
+  he[Ls]().loves(bind[Ls](bob).mother())
 } 
 
-val BobSaysAliceSaysSheLovesHisMother = ioBoundary { {inputOuter} {outputOuter} =>
+val BobSaysAliceSaysSheLovesHisMother = ioBoundary[Ls] { {inputOuter} {outputOuter} =>
   ioBoundary { {inputInner} {outputInner} =>
     says(outputOuter.output(bob), outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
   }
 } 
 
-def herMother(): Sentence => Sentence at {} = inputBoundary {
-  her().Mother()
+def herMother(): Sentence[Ls] => Sentence[Ls] at {} = inputBoundary {
+  her().mother()
 } 
+
 

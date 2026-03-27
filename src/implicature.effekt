@@ -4,41 +4,42 @@ import src/sentence
 
 
 interface Implicature {
-  def add(sentence1: Sentence, sentence2: Sentence): Sentence
-  def assume(sentence1: Sentence): Sentence
-  def is_(sentence1: Sentence, predicate: Sentence): Sentence
+  def add(sentence1: Sentence[Ls], sentence2: Sentence[Ls]): Sentence[Ls]
+  def assume(sentence1: Sentence[Ls]): Sentence[Ls]
+  def is_(sentence1: Sentence[Ls], sentence2: Sentence[Ls]): Sentence[Ls]
 }
 
-def implicatureBoundary{ body: {Implicature} => Sentence / Implicature}: Sentence = {
+def implicatureBoundary { body: {Implicature} => Sentence[Ls] / Implicature}: Sentence[Ls] = {
   try {
     body{cap}
   } with cap: Implicature {
-    def add(sentence1: Sentence, sentence2: Sentence) = {
-      And(resume(sentence1), sentence2)
+    def add(sentence1: Sentence[Ls], sentence2: Sentence[Ls]) = {
+      andP(resume(sentence1), sentence2)
     } 
-    def assume(sentence1: Sentence) = {
-      Exists(sentence1, resume(sentence1))
+    def assume(sentence1: Sentence[Ls]) = {
+      exists(sentence1, resume(sentence1))
     }
-    def is_(sentence1: Sentence, predicate: Sentence) = {
-      And(resume(sentence1), Is(sentence1, predicate))
+    def is_(sentence1: Sentence[Ls], predicate: Sentence[Ls]) = {
+      andP(resume(sentence1), combine(sentence1, predicate))
     }
   }
 }
+ 
 
-def implicatureBoundary { body: => Sentence / Implicature}: Sentence = {
+def implicatureBoundary { body: => Sentence[Ls] / Implicature}: Sentence[Ls] = {
   implicatureBoundary{ {_} => body()}
 }
 
 // Helper Definitions
-def whoIs(sentence1: Sentence, sentence2: Sentence) = do add(sentence1, sentence2)
-def assume(sentence1: Sentence) = do assume(sentence1)
-def is_(sentence1: Sentence, predicate: Sentence) = do is_(sentence1, predicate)
+def whoIs(sentence1: Sentence[Ls], sentence2: Sentence[Ls]) = do add(sentence1, sentence2)
+def assume(sentence1: Sentence[Ls]) = do assume(sentence1)
+def is_(sentence1: Sentence[Ls], predicate: Sentence[Ls]) = do is_(sentence1, predicate)
 
 
 // --- Examples that work ---
 
-val johnLovesBobWhoIsAlicesFather: Sentence = implicatureBoundary {
-  john.loves(whoIs(bob, Father(alice)))
+val johnLovesBobWhoIsAlicesFather: Sentence[Ls] = implicatureBoundary {
+  john.loves(whoIs(bob, father(alice)))
 }
 
 

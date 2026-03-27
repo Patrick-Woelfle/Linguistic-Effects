@@ -4,29 +4,29 @@ import src/sentence
 import src/inputOutput
 
 
-interface Trace {
-  def trace(): Sentence
+interface Trace[L] {
+  def trace(): Sentence[L]
 }
 
-interface Who {
-  def who(): Sentence
+interface Who[L] {
+  def who(): Sentence[L]
 }
 
 
-def traceBoundary{traceSentence: () => Sentence / Trace}: {() => Sentence}  => Sentence at {traceSentence} = box { {s} =>
+def traceBoundary[L]{traceSentence: () => Sentence[L] / Trace[L]}: {() => Sentence[L]}  => Sentence[L] at {traceSentence} = box { {s} =>
   try {
     traceSentence()
-  } with Trace {
+  } with Trace[L] {
     def trace() = { 
       resume(s())
     }
   }
 }
 
-def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: {() => Sentence} => Sentence at {whoSentence, traceSentence} = box { {answer} =>
+def whoBoundary[L]{whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]}: {() => Sentence[L]} => Sentence[L] at {whoSentence, traceSentence} = box { {answer} =>
   try {
-    (traceBoundary{traceSentence}){whoSentence()}
-  } with Who {
+    (traceBoundary[L]{traceSentence}){whoSentence()}
+  } with Who[L] {
     def who() = {
       resume(answer())
     }
@@ -34,80 +34,68 @@ def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentenc
 }
 
 // Overload
-def traceBoundary() {traceSentence: () => Sentence / Trace} {answer: () => Sentence}: Sentence = {
-  (traceBoundary{traceSentence}){answer}
+def traceBoundary[L]() {traceSentence: () => Sentence[L] / Trace[L]} {answer: () => Sentence[L]}: Sentence[L] = {
+  (traceBoundary[L]{traceSentence}){answer}
 }
 
-def whoBoundary{whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace} {answer: () => Sentence}: Sentence = {
-  (whoBoundary{whoSentence} {traceSentence}){answer}
+def whoBoundary[L]{whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]} {answer: () => Sentence[L]}: Sentence[L] = {
+  (whoBoundary[L]{whoSentence} {traceSentence}){answer}
 }
 
-def whoBoundary {answer: () => Sentence} {whoSentence: () => Sentence / Who} {traceSentence: () => Sentence / Trace}: Sentence = {
-  (whoBoundary{whoSentence} {traceSentence}){answer}
+def whoBoundary[L] {answer: () => Sentence[L]} {whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]}: Sentence[L] = {
+  (whoBoundary[L]{whoSentence} {traceSentence}){answer}
 }
 
 
 
-// For fronted Who
-def who(): Sentence / {Who} = do who()
-def __(): Sentence / {Trace} = do trace()
-def whose(): Sentence / {Who} = who() 
+// For fronted Who[L]
+def who(): Sentence[Ls] / {Who[Ls]} = do who[Ls]()
+def __(): Sentence[Ls] / {Trace[Ls]} = do trace[Ls]()
+def whose(): Sentence[Ls] / {Who[Ls]} = who() 
 
-// For In-Situ Who
-def who(): Sentence / {Trace} = do trace()
+// For In-Situ Who[L]
+def who(): Sentence[Ls] / {Trace[Ls]} = do trace[Ls]()
 
 
 // ---- Examples that Work ----
 
-def aliceLoves___(): {() => Sentence} => Sentence at {} = traceBoundary {loves(alice, __())}
-def aliceLoves___{answer: () => Sentence}: Sentence = traceBoundary {loves(alice, __())} {answer}
-val aliceLovesBob: Sentence = (aliceLoves___()){() => bob}
-val aliceLovesJohn: Sentence = aliceLoves___{() => john}
-
-// Second Block argument needs to be applied after first has been evaluated, so that bind and his are evaluated in the same order
-val bobLoveshisMother: Sentence = ioBoundary {
-  traceBoundary {loves(__(), his().mother)} {bind(bob)}
-}
-
-// Correctly doesn't connect her to alice
-val herMotherLovesAlice: Sentence = ioBoundary {
-  traceBoundary {loves(Mother(her()), __())} {bind(alice)}
-}
-
-def WhoDidAliceSee(): {() => Sentence} => Sentence at {} = whoBoundary {who()} {alice.saw(__())}
+def WhoDidAliceSee(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {who()} {alice.saw(__())}
 val aliceSawBob = (WhoDidAliceSee()){() => bob}
 
-// Who can pied-pipe surrounding words
-def whoseMotherDoesAliceLove(): {() => Sentence} => Sentence at {} = whoBoundary {who().mother()} {alice.loves(__())} 
+// Who[L] can pied-pipe surrounding words
+def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {who().mother()} {alice.loves(__())} 
 val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
 
-def whoSawHisMother(): Sentence = ioBoundary {
-  whoBoundary {bind(who())} {__().saw(his().mother())} {() => bob}
+def whoSawHisMother(): Sentence[Ls] = ioBoundary {
+  whoBoundary {bind[Ls](who())} {__().saw(his().mother())} {() => bob}
 }
 
-// Could bind to who or Father
-def whoseFatherDidAliceSaySawHisMother(): Sentence = ioBoundary {
-  whoBoundary {bind(Father(who()))} {__().saw(his().mother())} {() => bob}
+// Could bind to who[L] or Father
+def whoseFatherDidAliceSaySawHisMother(): Sentence[Ls] = ioBoundary {
+  whoBoundary {bind[Ls](father(who()))} {__().saw(his().mother())} {() => bob}
 }
 
-// Correctly doesn't connect who with his
-def whoDidHisMotherSee(): Sentence = ioBoundary { 
-  whoBoundary {bind(who())} {his().mother().saw( __())} {() => bob}
+// Correctly doesn't connect who[L] with his
+def whoDidHisMotherSee(): Sentence[Ls] = ioBoundary { 
+  whoBoundary {bind[Ls](who())} {his().mother().saw( __())} {() => bob}
 }
 
 // Could be better with Multiple Levels
-def whoSawWho(): Sentence = whoBoundary {who()} {__().saw(who())} {() => bob}
+def whoSawWho(): Sentence[Ls] = whoBoundary {who()} {__().saw(who())} {() => bob}
 
 // To use IO in incomplete Sentences, boxing is necessary
-def whoLoveshisMother(): {() => Sentence} => Sentence / {IO} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
-def bobLovesHisMother(): Sentence = ioBoundary { (whoLoveshisMother()){() => bind(bob)}}
+def whoLoveshisMother(): {() => Sentence[Ls]} => Sentence[Ls] / {IO[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
+def bobLovesHisMother(): Sentence[Ls] = ioBoundary { (whoLoveshisMother()){() => bind[Ls](bob)}}
 
 
 // ---- Examples that don't work ----
 
-// Since In-Situ-Who and Trace are implemented the same, Superiority doesn't work correctly
-def whoDidWhoSee__(): Sentence = whoBoundary {who()} {who().saw(__())} {() => bob}
+// Since In-Situ-Who[L] and Trace[L] are implemented the same, Superiority doesn't work correctly
+def whoDidWhoSee__(): Sentence[Ls] = whoBoundary {who()} {who().saw(__())} {() => bob}
 
-// Doesn't work, because who can't select out of a set of people, interesting because john can bind he
-def whichOfJohnsFriendsdoesHeLike__(): Sentence = <>
+// Doesn't work, because who[L] can't select out of a set of people, interesting because john can bind he
+def whichOfJohnsFriendsdoesHeLike__(): Sentence[Ls] = <>
 
+def main() = {
+  println("a")
+}
