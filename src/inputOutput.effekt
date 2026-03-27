@@ -43,38 +43,13 @@ def ioBoundary[L]() { body: => Sentence[L] / {Input[L], Output[L]}}: Sentence[L]
 
 
 // Helper Definitions
-def he[L](): Sentence[L] / {Input[L]} = do input()
-def he() = he[Ls]()
+def he(): Sentence[Ls] / {Input[Ls]} = do input()
 def she() = he()
 def him() = he()
 def her() = he()
 def his() = he()
-def bind[L](s: Sentence[L]): Sentence[L] / {Output[L]} = do output(s)
-def bind(s: Sentence[Ls]) = bind[Ls](s)
+def bind(s: Sentence[Ls]): Sentence[Ls] / {Output[Ls]} = do output(s)
 
 
-// --- Examples that work ---
-
-val bobLovesHisMother = ioBoundary[Ls] {
-  bind[Ls](bob).loves(his().mother)
-} 
-
-val BobSaysHeLovesHisMother = ioBoundary[Ls] {
-  bind[Ls](bob).says(he[Ls]().loves(his().mother))
-} 
-
-val HeLovesBobsMother = ioBoundary[Ls] {
-  he[Ls]().loves(bind[Ls](bob).mother())
-} 
-
-val BobSaysAliceSaysSheLovesHisMother = ioBoundary[Ls] { {inputOuter} {outputOuter} =>
-  ioBoundary { {inputInner} {outputInner} =>
-    says(outputOuter.output(bob), outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
-  }
-} 
-
-def herMother(): Sentence[Ls] => Sentence[Ls] at {} = inputBoundary {
-  her().mother()
-} 
 
 
