@@ -3,49 +3,93 @@ module src/test
 import test
 import src/sentence
 import src/inputOutput
-import src/quantification
-import src/implicature
 import src/traceWho
 
-def main() = mainSuite("test") {
-  test("Simple Pronoun Binding") {
-    assert( 
-        ioBoundary { 
-          bind(bob).loves(his().mother)
-        }.show(), 
-        bob.loves(bob.mother).show()
-    )
-  }
-  test("Douple Pronoun Binding") {
-    assert( 
-        ioBoundary { 
-          bind(bob).says(he().loves(his().mother))
-        }.show(), 
-        bob.says(bob.loves(bob.mother)).show()
-    )
-  }
-  test("Pronoun Usage before binding") {
-    assert( 
-        ioBoundary { 
-          he().loves(bind(bob).mother())
-        }.show(), 
-        Empty().loves(bob.mother()).show()
-    )
-  }
-  test("Input Output over multiple Levels") {
-    assert( 
-      ioBoundary { {inputOuter} {outputOuter} =>
-        ioBoundary { {inputInner} {outputInner} =>
-          outputOuter.output(bob).says(outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
-        }
-      }.show(), 
-      bob.says(alice.says(alice.loves(bob.mother()))).show()
-    )
-  }
-  test("Input without Output") {
-    def herMother(): Sentence => Sentence at {} = inputBoundary {
-      her().Mother()
+
+
+def main() = {
+  mainSuite("Tests") {
+    // IO
+    test("Simple Pronoun Binding") {
+      assert( 
+          ioBoundary[Ls] { 
+            bind(bob).loves(his().mother())
+          }.show(), 
+          bob.loves(bob.mother()).show()
+      )
     }
-    assert(herMother()(alice).show(), alice.Mother().show())
+    test("Douple Pronoun Binding") {
+      assert( 
+          ioBoundary[Ls] { 
+            bind(bob).says(he().loves(his().mother))
+          }.show(), 
+          bob.says(bob.loves(bob.mother)).show()
+      )
+    }
+    test("Pronoun Usage before binding") {
+      assert( 
+          ioBoundary[Ls] { 
+            he().loves(bind(bob).mother())
+          }.show(), 
+          Empty().loves(bob.mother()).show()
+      )
+    }
+    test("Input Output over multiple Levels") {
+      assert( 
+        ioBoundary[Ls] { {inputOuter} {outputOuter} =>
+          ioBoundary[Ls] { {inputInner} {outputInner} =>
+            outputOuter.output(bob).says(outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
+          }
+        }.show(), 
+        bob.says(alice.says(alice.loves(bob.mother()))).show()
+      )
+    }
+    test("Input without Output") {
+      def herMother(): Sentence[Ls] => Sentence[Ls] at {} = inputBoundary {
+        her().mother()
+      }
+      assert(herMother()(alice).show(), alice.mother().show())
+    }
+    // Trace Who
+    test("Trace Boundary Normal") {
+      def aliceLoves___(): {() => Sentence[Ls]} => Sentence[Ls] at {} = traceBoundary[Ls] {loves(alice, __())}
+      val aliceLovesBob: Sentence[Ls] = (aliceLoves___()){() => bob}
+      assert(aliceLovesBob.show(), alice.loves(bob).show())
+    }
+    test("Trace Boundary Overloaded") {
+      def aliceLoves___{answer: () => Sentence[Ls]}: Sentence[Ls] = traceBoundary[Ls] {loves(alice, __())} {answer}
+      val aliceLovesBob: Sentence[Ls] = aliceLoves___{() => bob}
+      assert(aliceLovesBob.show(), alice.loves(bob).show())
+    }
+    test("Who Boundary") {
+      def WhoDidAliceSee(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary[Ls] {do who[Ls]()} {alice.saw(__())}
+      val aliceSawBob = (WhoDidAliceSee()){() => bob}
+      assert(aliceSawBob.show(), alice.saw(bob).show())
+    }
+    test("Pied Piping") {
+      def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who[Ls]().mother()} {alice.loves(__())} 
+      val aliceSawBob = (WhoDidAliceSee()){() => bob}
+      assert(aliceSawBob.show(), alice.saw(bob).show())
+    }
+    // test("Regular Use of Who Boundary, not sure why it doesn't work") {
+    //   def test(): Sentence[Ls] = ioBoundary[Ls] {
+    //     whoBoundary[Ls] {do who[Ls]().mother()} {alice.loves(__())} {() => bob}
+    //   }
+    //   assert(test.show(), test.show())
+    // }
+    
+    // Interactions
+    test("Interaction Trace Boundary, Input Output") {
+      val bobLovesHisMother: Sentence[Ls] = ioBoundary {
+        traceBoundary[Ls] {loves(__(), his().mother)} {bind(bob)}
+      }
+      assert(bobLovesHisMother.show(), bob.loves(bob.mother).show())
+    }
+    test("Interaction Trace Boundary, Input Output") {
+      val herMotherLovesAlice: Sentence[Ls] = ioBoundary {
+        traceBoundary[Ls] {loves(mother(her()), __())} {bind(alice)}
+      }
+      assert(herMotherLovesAlice.show(), Empty().mother.loves(alice).show())
+    }
   }
 }

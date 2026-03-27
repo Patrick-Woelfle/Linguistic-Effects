@@ -67,17 +67,17 @@ def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = who
 val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
 
 def whoSawHisMother(): Sentence[Ls] = ioBoundary {
-  whoBoundary {bind[Ls](who())} {__().saw(his().mother())} {() => bob}
+  whoBoundary {bind(who())} {__().saw(his().mother())} {() => bob}
 }
 
 // Could bind to who[L] or Father
 def whoseFatherDidAliceSaySawHisMother(): Sentence[Ls] = ioBoundary {
-  whoBoundary {bind[Ls](father(who()))} {__().saw(his().mother())} {() => bob}
+  whoBoundary {bind(father(who()))} {__().saw(his().mother())} {() => bob}
 }
 
 // Correctly doesn't connect who[L] with his
 def whoDidHisMotherSee(): Sentence[Ls] = ioBoundary { 
-  whoBoundary {bind[Ls](who())} {his().mother().saw( __())} {() => bob}
+  whoBoundary {bind(who())} {his().mother().saw( __())} {() => bob}
 }
 
 // Could be better with Multiple Levels
@@ -85,7 +85,7 @@ def whoSawWho(): Sentence[Ls] = whoBoundary {who()} {__().saw(who())} {() => bob
 
 // To use IO in incomplete Sentences, boxing is necessary
 def whoLoveshisMother(): {() => Sentence[Ls]} => Sentence[Ls] / {IO[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
-def bobLovesHisMother(): Sentence[Ls] = ioBoundary { (whoLoveshisMother()){() => bind[Ls](bob)}}
+def bobLovesHisMother(): Sentence[Ls] = ioBoundary { (whoLoveshisMother()){() => bind(bob)}}
 
 
 // ---- Examples that don't work ----
