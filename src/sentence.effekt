@@ -1,75 +1,177 @@
-module sentence
+module playground
 
-
-type Sentence {
-  Say(speaker: Sentence, sentence: Sentence)
-  Saw(watcher: Sentence, watchted: Sentence)
-  Father(of: Sentence)
-  Mother(of: Sentence)
-  Man()
-  Woman()
-  OpinionOf(person1: Sentence, person2: Sentence)
-  Respects(person1: Sentence, person2: Sentence)
-  Is(person: Sentence, predicate: Sentence)
-  ForAll(individual: Sentence, s: Sentence)
-  Exists(individual: Sentence, s: Sentence)
-  Implies(a: Sentence, b: Sentence)
-  Person(name: String)
-  InLoveWith(person: Sentence)
-  Present(giver: Sentence, receiver: Sentence)
-  And(sentence1: Sentence, sentence2: Sentence)
+type Sentence[L] {
+  Proposition3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
+  Proposition2(label: L, argument1: Sentence[L], argument2: Sentence[L])
+  Proposition1(label: L, argument1: Sentence[L])
+  Proposition0(label: L)
+  Term3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
+  Term2(label: L, argument1: Sentence[L], argument2: Sentence[L])
+  Term1(label: L, argument1: Sentence[L])
+  Term0(label: L)
+  Quantifier(label: L, argument1: Sentence[L])
   Empty()
-  Likes(person1: Sentence, person2: Sentence)
 }
 
-// type Sentence2 [V, N] {
-  
-// }
+type Ls {
+  // Propositions
+  Loves()
+  Say()
+  Saw()
+  Man()
+  Woman()
+  Respects()
+  Implies()
+  InLoveWith()
+  Present()
+  AndP()
+  Likes()
+  True()
+  False()
+  // Terms
+  Father()
+  Mother()
+  OpinionOf()
+  Person()
+  Nothing()
+  AndT()
+  Bob()
+  John()
+  Alice()
+  Identifier(string: String)
+  // Quantifiers
+  Exists()
+  ForAll()
+}
 
 
-// type Noun {
-//   NP(dt: String, n: Noun)
-//   Person2(name: String)
-// }
+def loves(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Loves(), arg1, arg2)
+}
+
+def says(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Say(), arg1, arg2)
+}
+
+def saw(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Saw(), arg1, arg2)
+}
+
+def man(arg1: Sentence[Ls]) = {
+  Proposition1(Man(), arg1)
+}
+
+def woman(arg1: Sentence[Ls]) = {
+  Proposition1(Woman(), arg1)
+}
+
+def respects(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Saw(), arg1, arg2)
+}
+
+def implies(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Implies(), arg1, arg2)
+}
+
+def andP(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(AndP(), arg1, arg2)
+}
+
+def InLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(InLoveWith(), arg1, arg2)
+}
+
+def Likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Proposition2(Likes(), arg1, arg2)
+}
+
+def true_(): Sentence[Ls] = {
+  Proposition0(True())
+}
+
+def false_(): Sentence[Ls] = {
+  Proposition0(False())
+}
+
+def father(arg1: Sentence[Ls]) = {
+  Term1(Father(), arg1)
+}
+
+def mother(arg1: Sentence[Ls]) = {
+  Term1(Mother(), arg1)
+}
+
+def opinionOf(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Term2(OpinionOf(), arg1, arg2)
+}
+
+def person(name: String): Sentence[Ls] = {
+  Term0(Person())
+}
+
+val john: Sentence[Ls] = {
+  Term0(John())
+}
+
+val bob: Sentence[Ls] = {
+  Term0(Bob())
+}
+
+val alice: Sentence[Ls] = {
+  Term0(Alice())
+}
+
+val nothing: Sentence[Ls] = {
+  Term0(Nothing())
+}
+
+def identifier(string: String): Sentence[Ls] = {
+  Term0(Identifier(string))
+}
+
+def andT(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+  Term2(AndT(), arg1, arg2)
+}
+
+def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Quantifier(ForAll(), arg1)
+}
+
+def exists(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Quantifier(Exists(), arg1)
+}
+
+def present(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Term2(Present(), arg1, arg2)
+}
 
 
-// type Relation {
-//   InLoveWith2(person: Sentence)
-// }
-
-
-// Helper Definitions
-def loves(lover: Sentence, loved: Sentence): Sentence = Is(lover, InLoveWith(loved))
-def likes(person1: Sentence, person2: Sentence): Sentence = Likes(person1, person2)
-def respects(respecter: Sentence, respected: Sentence): Sentence = Respects(respecter, respected)
-def says(speaker: Sentence, sentence: Sentence): Sentence = Say(speaker, sentence)
-def saw(watcher: Sentence, watched: Sentence): Sentence = Saw(watcher, watched)
-def mother(of: Sentence): Sentence = Mother(of)
-def present(giver: Sentence, receiver: Sentence): Sentence = Present(giver, receiver)
-val alice = Person("Alice")
-val john = Person("John")
-val bob = Person("Bob")
-
-
-def format(s: Sentence): String = {
+def getLabel(s: Sentence[Ls]): Ls  = {
   s match {
-    case Say(speaker, sentence) => format(speaker) ++ " says (" ++ format(sentence) ++ ")"
-    case Saw(watcher, watched) => format(watcher) ++ " saw " ++ format(watched)
-    case Father(of) => format(of) ++ "'s father"
-    case Mother(of) => format(of) ++ "'s mother"
-    case Man() => "man"
-    case Woman() => "woman"
-    case OpinionOf(person1, person2) => "opinion of " ++ format(person1) ++ " about " ++ format(person2)
-    case Respects(person1, person2) => format(person1) ++ " respects " ++ format(person2)
-    case Is(person, predicate) => format(person) ++ " is " ++ format(predicate)
-    case ForAll(individual, sentence) => "forall " ++ format(individual) ++ ". " ++ format(sentence)
-    case Exists(individual, sentence) => "exists " ++ format(individual) ++ ". " ++ format(sentence)
-    case Implies(a, b) => "(" ++ format(a) ++ ") -> (" ++ format(b) ++ ")"
-    case Person(name) => name
-    case InLoveWith(person) => "in love with " ++ format(person)
-    case Present(giver, receiver) => format(giver) ++ " gives a present to " ++ format(receiver)
-    case And(sentence1, sentence2) => "(" ++ format(sentence1) ++ ") and (" ++ format(sentence2) ++ ")"
-    case Empty() => "???"
-    case Likes(person1, person2) => format(person1) ++ " likes " ++ format(person2)
+    case Proposition3(l, arg1, arg2, arg3) => l
+    case Proposition2(l, arg1, arg2) => l
+    case Proposition1(l, arg1) => l
+    case Proposition0(l) => l
+    case Term3(l, arg1, arg2, arg3) => l
+    case Term2(l, arg1, arg2) => l
+    case Term1(l, arg1) => l
+    case Term0(l) => l
+    case Quantifier(l, arg1) => l
+    case Empty() => Nothing()
+  }
+}
+
+def combine(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+  arg2 match {
+    case Proposition2(label, argument1, argument2) => Proposition2(label, combine(arg1, argument1), combine(arg1, argument2))
+    case Proposition1(label, argument1) => Proposition1(label, combine(arg1, argument1))
+    case Proposition3(label, argument1, argument2, argument3) => Proposition3(label, combine(arg1, argument1), combine(arg1, argument2), combine(arg1, argument3))
+    case Proposition0(label) => Proposition0(label)
+    case Term3(label, argument1, argument2, argument3) => Term3(label, combine(arg1, argument1), combine(arg1, argument2), combine(arg1, argument3))
+    case Term2(label, argument1, argument2) => Term2(label, combine(arg1, argument1), combine(arg1, argument2))
+    case Term1(label, argument1) => Term1(label, combine(arg1, argument1))
+    case Term0(label) => Term0(label)
+    case Quantifier(label, argument1) => Quantifier(label, combine(arg1, argument1))
+    case Empty() => arg1
   }
 }
