@@ -8,7 +8,7 @@ import src/implicature
 
 interface Quantification[L] {
   // Corresponds to every/a ___
-  def every(predicate: Sentence[L]): Sentence[L]
+  def every(f: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls]
   def a(predicate: Sentence[L]): Sentence[L]
   // Corresponds to everyone/someone
   def everyone(): Sentence[L]
@@ -23,9 +23,9 @@ def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => 
       val x = fresh()
       forall(x, resume(x))
     }
-    def every(predicate) = {
+    def every(f: Sentence[Ls] => Sentence[Ls] at {}) = {
       val x = fresh()
-      forall(x, implies(combine(x, predicate), resume(x)))
+      forall(x, implies(f(x), resume(x)))
     }
     def a(predicate) = {
       val x = fresh()
@@ -52,7 +52,8 @@ def quantificationBoundary { body: {Quantification[Ls]} => Sentence[Ls] / Quanti
 def everyone(): Sentence[Ls] / {Quantification[Ls]} = do everyone()
 def someone(): Sentence[Ls] / {Quantification[Ls]} = do someone()
 def a(predicate: Sentence[Ls]) = do a(predicate)
-def every(predicate: Sentence[Ls]) = do every(predicate)
+// Meeting: Show unboxed Version
+def every(predicate: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls] / {Quantification[Ls]} = do every(predicate)
 
 
 // --- Examples that work ---
@@ -94,12 +95,23 @@ val someoneLovesEveryone: Sentence[Ls] = quantificationBoundary("x"){ {outer} =>
   }
 }
 
+// Meeting: Ask
+// val woman = box { x =>
+//   Proposition1(Woman(), x)
+// }
+
+// val everyWoman: Sentence[Ls] = quantificationBoundary {
+//   every(woman)
+// }
+
 // def johnIsAmanWhoseOpinionOfHerEveryWomanRespects(): Sentence[Ls] = implicatureBoundary {
 //   ioBoundary[Ls] {
 //     quantificationBoundary {
-//       whoBoundary[Ls] {() => john.is_(man())} {do who[Ls]().opinionOf(he())} {bind(every(woman(bob))).respects(__())}
+//       whoBoundary[Ls] {() => john.is_(man())} {do who[Ls]().opinionOf(he())} {bind(every(box(x => womanFun(x))))).respects(__())}
 //     }
 //   }
 // }
 
-def main() = {}
+def main() = {
+  println(show("a"))
+}
