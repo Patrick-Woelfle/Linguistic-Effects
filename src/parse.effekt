@@ -1,0 +1,43 @@
+module parse
+
+import src/sentence
+import src/inputOutput
+
+interface Back {
+  def backProposition2(a: Ls): Sentence[Ls]
+}
+
+def parse(input: List[Ls]): Sentence[Ls] ={
+  ioBoundary[Ls] {
+    parseHelper(input, Empty())
+  }
+}
+
+
+def parseHelper(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls]} ={
+  input match {
+    case Cons(front, tail) => front match {
+      case Loves() => Proposition2(Loves(), arg, parseHelper(tail, Empty()))
+      case Alice() => parseHelper(tail, bind(alice))
+      case Bob() => parseHelper(tail, bind(bob))
+      case Mother() => bind(Term1(Mother(), parseHelper(tail, arg)))
+      case Her() => parseHelper(tail, do input())
+      case _ => Empty()
+    }
+    case Nil() => arg
+  }
+}
+
+// Someone loves everyone
+// whose Present for him did everyones Father see
+// her Father loves everyone 
+// alice loves bob
+// Alice loves her mother
+
+def test() = {
+  parse([Alice(), Loves(), Her(), Mother()])
+}
+
+def main() = {
+  println(show(test()))
+}
