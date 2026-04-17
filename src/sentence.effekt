@@ -42,6 +42,10 @@ type Ls {
   // Quantifiers
   Exists()
   ForAll()
+  // Effektful
+  Someone()
+  Everyone()
+  Her()
 }
 
 
@@ -77,11 +81,11 @@ def andP(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Proposition2(AndP(), arg1, arg2)
 }
 
-def InLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def inLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Proposition2(InLoveWith(), arg1, arg2)
 }
 
-def Likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Proposition2(Likes(), arg1, arg2)
 }
 
@@ -133,45 +137,16 @@ def andT(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
   Term2(AndT(), arg1, arg2)
 }
 
-def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
   Quantifier(ForAll(), arg1)
 }
 
-def exists(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def exists(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
   Quantifier(Exists(), arg1)
 }
 
-def present(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def present(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
   Term2(Present(), arg1, arg2)
 }
 
 
-def getLabel(s: Sentence[Ls]): Ls  = {
-  s match {
-    case Proposition3(l, arg1, arg2, arg3) => l
-    case Proposition2(l, arg1, arg2) => l
-    case Proposition1(l, arg1) => l
-    case Proposition0(l) => l
-    case Term3(l, arg1, arg2, arg3) => l
-    case Term2(l, arg1, arg2) => l
-    case Term1(l, arg1) => l
-    case Term0(l) => l
-    case Quantifier(l, arg1) => l
-    case Empty() => Nothing()
-  }
-}
-
-def combine(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
-  arg2 match {
-    case Proposition2(label, argument1, argument2) => Proposition2(label, combine(arg1, argument1), combine(arg1, argument2))
-    case Proposition1(label, argument1) => Proposition1(label, combine(arg1, argument1))
-    case Proposition3(label, argument1, argument2, argument3) => Proposition3(label, combine(arg1, argument1), combine(arg1, argument2), combine(arg1, argument3))
-    case Proposition0(label) => Proposition0(label)
-    case Term3(label, argument1, argument2, argument3) => Term3(label, combine(arg1, argument1), combine(arg1, argument2), combine(arg1, argument3))
-    case Term2(label, argument1, argument2) => Term2(label, combine(arg1, argument1), combine(arg1, argument2))
-    case Term1(label, argument1) => Term1(label, combine(arg1, argument1))
-    case Term0(label) => Term0(label)
-    case Quantifier(label, argument1) => Quantifier(label, combine(arg1, argument1))
-    case Empty() => arg1
-  }
-}
