@@ -4,29 +4,29 @@ import src/sentence
 import src/inputOutput
 
 
-interface Trace[L] {
-  def trace(): Sentence[L]
+interface Trace {
+  def trace(): Sentence[Ls]
 }
 
-interface Who[L] {
-  def who(): Sentence[L]
+interface Who {
+  def who(): Sentence[Ls]
 }
 
 
-def traceBoundary[L]{traceSentence: () => Sentence[L] / Trace[L]}: {() => Sentence[L]}  => Sentence[L] at {traceSentence} = box { {s} =>
+def traceBoundary{traceSentence: () => Sentence[Ls] / Trace}: {() => Sentence[Ls]}  => Sentence[Ls] at {traceSentence} = box { {s} =>
   try {
     traceSentence()
-  } with Trace[L] {
+  } with Trace {
     def trace() = { 
       resume(s())
     }
   }
 }
 
-def whoBoundary[L]{whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]}: {() => Sentence[L]} => Sentence[L] at {whoSentence, traceSentence} = box { {answer} =>
+def whoBoundary{whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace}: {() => Sentence[Ls]} => Sentence[Ls] at {whoSentence, traceSentence} = box { {answer} =>
   try {
-    (traceBoundary[L]{traceSentence}){whoSentence()}
-  } with Who[L] {
+    (traceBoundary{traceSentence}){whoSentence()}
+  } with Who {
     def who() = {
       resume(answer())
     }
@@ -34,41 +34,31 @@ def whoBoundary[L]{whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () =
 }
 
 // Overload
-def traceBoundary[L]() {traceSentence: () => Sentence[L] / Trace[L]} {answer: () => Sentence[L]}: Sentence[L] = {
-  (traceBoundary[L]{traceSentence}){answer}
+def traceBoundary() {traceSentence: () => Sentence[Ls] / Trace} {answer: () => Sentence[Ls]}: Sentence[Ls] = {
+  (traceBoundary{traceSentence}){answer}
 }
 
-def whoBoundary[L]{whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]} {answer: () => Sentence[L]}: Sentence[L] = {
-  (whoBoundary[L]{whoSentence} {traceSentence}){answer}
+def whoBoundary{whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace} {answer: () => Sentence[Ls]}: Sentence[Ls] = {
+  (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
-def whoBoundary[L] {answer: () => Sentence[L]} {whoSentence: () => Sentence[L] / Who[L]} {traceSentence: () => Sentence[L] / Trace[L]}: Sentence[L] = {
-  (whoBoundary[L]{whoSentence} {traceSentence}){answer}
+def whoBoundary {answer: () => Sentence[Ls]} {whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace}: Sentence[Ls] = {
+  (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
 
 
 // For fronted Who[L]
-def who(): Sentence[Ls] / {Who[Ls]} = do who[Ls]()
-def __(): Sentence[Ls] / {Trace[Ls]} = do trace[Ls]()
-def whose(): Sentence[Ls] / {Who[Ls]} = who() 
+def who(): Sentence[Ls] / {Who} = do who()
+def __(): Sentence[Ls] / {Trace} = do trace()
+def whose(): Sentence[Ls] / {Who} = who() 
 
 // For In-Situ Who[L]
-def who(): Sentence[Ls] / {Trace[Ls]} = do trace[Ls]()
+def who(): Sentence[Ls] / {Trace} = do trace()
 
 
 // ---- Examples that Work ----
 
-def WhoDidAliceSee(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {who()} {alice.saw(__())}
-val aliceSawBob = (WhoDidAliceSee()){() => bob}
-
-// Who[L] can pied-pipe surrounding words
-def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {who().mother()} {alice.loves(__())} 
-val AliceLovesBobsMother = (whoseMotherDoesAliceLove()){() => bob}
-
-def whoSawHisMother(): Sentence[Ls] = ioBoundary {
-  whoBoundary {bind(who())} {__().saw(his().mother())} {() => bob}
-}
 
 // Could bind to who[L] or Father
 def whoseFatherDidAliceSaySawHisMother(): Sentence[Ls] = ioBoundary {
@@ -95,6 +85,8 @@ def whoDidWhoSee__(): Sentence[Ls] = whoBoundary {who()} {who().saw(__())} {() =
 
 // Doesn't work, because who[L] can't select out of a set of people, interesting because john can bind he
 def whichOfJohnsFriendsdoesHeLike__(): Sentence[Ls] = <>
+
+
 
 def main() = {
   println("a")
