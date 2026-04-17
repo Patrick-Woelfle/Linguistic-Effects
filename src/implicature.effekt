@@ -36,10 +36,5 @@ def assume(sentence1: Sentence[Ls]) = do assume(sentence1)
 def is_(sentence1: Sentence[Ls], predicate: Sentence[Ls] => Sentence[Ls] at {}) = do is_(sentence1, predicate)
 
 
-// --- Examples that work ---
-
-val johnLovesBobWhoIsAlicesFather: Sentence[Ls] = implicatureBoundary {
-  john.loves(whoIs(bob, father(alice)))
-}
 
 

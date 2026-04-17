@@ -9,7 +9,7 @@ import src/implicature
 interface Quantification[L] {
   // Corresponds to every/a ___
   def every(f: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls]
-  def a(predicate: Sentence[L]): Sentence[L]
+  def a(f: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls]
   // Corresponds to everyone/someone
   def everyone(): Sentence[L]
   def someone(): Sentence[L]
@@ -27,9 +27,9 @@ def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => 
       val x = fresh()
       forall(x, implies(f(x), resume(x)))
     }
-    def a(predicate) = {
+    def a(f: Sentence[Ls] => Sentence[Ls] at {}) = {
       val x = fresh()
-      exists(x, andP(combine(x, predicate), resume(x)))
+      exists(x, andP(f(x), resume(x)))
     }
     def someone() = {
       val x = fresh()
@@ -51,66 +51,11 @@ def quantificationBoundary { body: {Quantification[Ls]} => Sentence[Ls] / Quanti
 // Helper Definitions
 def everyone(): Sentence[Ls] / {Quantification[Ls]} = do everyone()
 def someone(): Sentence[Ls] / {Quantification[Ls]} = do someone()
-def a(predicate: Sentence[Ls]) = do a(predicate)
+def a(predicate: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls] / {Quantification[Ls]} = do a(predicate)
 // Meeting: Show unboxed Version
 def every(predicate: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls] / {Quantification[Ls]} = do every(predicate)
 
 
-// --- Examples that work ---
-
-val aliceLovesEveryonesMother: Sentence[Ls] = quantificationBoundary{
-  alice.loves(everyone().mother())
-}
-
-// Combination with IO
-val everyonesFatherLovesTheirMother: Sentence[Ls] = ioBoundary[Ls] {
-  quantificationBoundary {
-    father(bind(everyone())).loves(mother(do input()))
-  }
-}
-
-// Correctly doesn't connect her and Everyone
-val herFatherLovesEveryonesMother: Sentence[Ls] = ioBoundary {
-  quantificationBoundary {
-    father(do input()).loves(mother(bind(everyone())))
-  }
-}
-
-def whosePresentforhimDideveryonesFatherSee{answer: () => Sentence[Ls]}: Sentence[Ls] = quantificationBoundary {
-  ioBoundary[Ls] {
-    whoBoundary[Ls] {do who[Ls]().present(he())} {bind(father(everyone())).saw(__())} {answer()}
-  }
-}
-
-def whosePresentforhimDideveryonesFatherSee{answer: () => Sentence[Ls]}: Sentence[Ls] = quantificationBoundary {
-  ioBoundary[Ls] {
-    whoBoundary[Ls] {who().present(he())} {bind(father(everyone())).saw(__())} {answer}
-  }
-}
-
-// Uses multiple levels
-val someoneLovesEveryone: Sentence[Ls] = quantificationBoundary("x"){ {outer} =>  
-  quantificationBoundary("y") { {inner} =>
-      inner.someone().loves(outer.everyone)
-  }
-}
-
-// Meeting: Ask
-// val woman = box { x =>
-//   Proposition1(Woman(), x)
-// }
-
-// val everyWoman: Sentence[Ls] = quantificationBoundary {
-//   every(woman)
-// }
-
-// def johnIsAmanWhoseOpinionOfHerEveryWomanRespects(): Sentence[Ls] = implicatureBoundary {
-//   ioBoundary[Ls] {
-//     quantificationBoundary {
-//       whoBoundary[Ls] {() => john.is_(man())} {do who[Ls]().opinionOf(he())} {bind(every(box(x => womanFun(x))))).respects(__())}
-//     }
-//   }
-// }
 
 def main() = {
   println(show("a"))
