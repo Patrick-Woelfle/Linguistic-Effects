@@ -9,7 +9,7 @@ type Sentence[L] {
   Term2(label: L, argument1: Sentence[L], argument2: Sentence[L])
   Term1(label: L, argument1: Sentence[L])
   Term0(label: L)
-  Quantifier(label: L, argument1: Sentence[L])
+  Quantifier(label: L, argument1: Sentence[L], argument2: Sentence[L])
   Empty()
 }
 
@@ -138,11 +138,11 @@ def andT(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
 }
 
 def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
-  Quantifier(ForAll(), arg1)
+  Quantifier(ForAll(), arg1, arg2)
 }
 
 def exists(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
-  Quantifier(Exists(), arg1)
+  Quantifier(Exists(), arg1, arg2)
 }
 
 def present(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {

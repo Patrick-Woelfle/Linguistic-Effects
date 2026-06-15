@@ -71,7 +71,7 @@ def main() = {
     test("Pied Piping") {
       def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who().mother()} {alice.loves(__())} 
       val aliceLovesBobsMother: Sentence[Ls] = (whoseMotherDoesAliceLove()){() => bob}
-      // assert(aliceLovesBobsMother.show(), alice.loves.bob.mother.show())
+      assert(aliceLovesBobsMother.show(), alice.loves(bob.mother).show())
     }
     // --------------- Quantification ---------------
     test("Simple Quantification") {
