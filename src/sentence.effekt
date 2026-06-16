@@ -46,6 +46,9 @@ type Ls {
   Someone()
   Everyone()
   Her()
+  AndM()
+  Who()
+  Trace()
 }
 
 

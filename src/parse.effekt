@@ -2,42 +2,150 @@ module parse
 
 import src/sentence
 import src/inputOutput
+import src/Quantification
+import src/traceWho
 
-interface Back {
-  def backProposition2(a: Ls): Sentence[Ls]
+interface Flip {
+  def flip(): Bool
 }
 
-def parse(input: List[Ls]): Sentence[Ls] ={
-  ioBoundary[Ls] {
-    parseHelper(input, Empty())
+interface Abort {
+  def abort(msg: String): Unit
+}
+
+interface Split {
+  def split(first: Sentence[Ls], tail: List[Ls]): Sentence[Ls]
+}
+
+effect ParseEffekts = {Flip, Abort, Split} 
+
+def labelToString(label: Ls): String = {
+  label match {
+    case Loves() => " loves"
+    case Say() => " says"
+    case Saw() => " saw"
+    case Man() => " man"
+    case Woman() => " woman"
+    case Respects() => " respects"
+    case Implies() => " implies"
+    case InLoveWith() => " in love with"
+    case Present() => " present"
+    case AndP() => " and"
+    case Likes() => " likes"
+    case True() => " true"
+    case False() => " false"
+    case Father() => "'s father"
+    case Mother() => "'s mother"
+    case OpinionOf() => " opinion of"
+    case Person() => " person"
+    case Nothing() => " nothing"
+    case AndT() => " and"
+    case Bob() => " Bob"
+    case John() => " John"
+    case Alice() => " Alice"
+    case Identifier(string) => " " ++ string
+    case Exists() => " exists"
+    case ForAll() => " for all"
+    case Someone() => " someone"
+    case Everyone() => " everyone"
+    case AndM() => " ---"
+    case _ => ""
   }
 }
 
 
-def parseHelper(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls]} ={
+
+def sentenceToString(s: Sentence[Ls]): String = {
+  s match {
+    case Proposition3(label, argument1, argument2, argument3) => 
+      labelToString(label) ++ sentenceToString(argument1) ++ sentenceToString(argument2) ++ sentenceToString(argument3)
+    case Proposition2(label, argument1, argument2) => 
+       sentenceToString(argument1) ++ labelToString(label) ++ sentenceToString(argument2)
+    case Proposition1(label, argument1) => 
+      labelToString(label) ++ sentenceToString(argument1)
+    case Proposition0(label) => 
+      labelToString(label)
+    case Term3(label, argument1, argument2, argument3) => 
+      labelToString(label) ++ sentenceToString(argument1) ++ sentenceToString(argument2) ++ sentenceToString(argument3)
+    case Term2(label, argument1, argument2) => 
+       sentenceToString(argument1) ++ labelToString(label) ++ sentenceToString(argument2)
+    case Term1(label, argument1) => 
+       sentenceToString(argument1) ++ labelToString(label)
+    case Term0(label ) => 
+      labelToString(label)
+    case Quantifier(label, argument1, argument2) => 
+      labelToString(label) ++ sentenceToString(argument1) ++ " ." ++ sentenceToString(argument2)
+    case Empty() => 
+      " Empty"
+  }
+}
+
+def parse(input: List[Ls]): Sentence[Ls] ={
+  try {
+    ioBoundary[Ls] {
+      quantificationBoundary{
+        parseLabelToString(input, Empty())
+      }
+    }
+  } with Abort { // Currently not used
+    def abort(msg) = {
+      println("Parsing failed: " ++ msg)
+      Empty()
+    }
+  } with Flip { // Currently not used
+    def flip() = {
+      Proposition2(AndM(), resume(false), resume(true))
+    }
+  } with Split { // Used, when two Term0s appear after another
+    def split(arg: Sentence[Ls], tail: List[Ls]) = {
+      Proposition2(AndM(), resume(arg), parse(tail))
+    }
+  } with Trace {
+    def trace() = {
+      resume(Term0(Identifier(" Trace")))
+    }
+  }
+}
+
+
+// Ask about matching on multiple patterns
+def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace} ={
   input match {
     case Cons(front, tail) => front match {
-      case Loves() => Proposition2(Loves(), arg, parseHelper(tail, Empty()))
-      case Alice() => parseHelper(tail, bind(alice))
-      case Bob() => parseHelper(tail, bind(bob))
-      case Mother() => bind(Term1(Mother(), parseHelper(tail, arg)))
-      case Her() => parseHelper(tail, do input())
+      case Loves() => loves(arg, parseLabelToString(tail, Empty()))
+      case Say() => says(arg, parseLabelToString(tail, Empty()))
+      case Alice() => parseTerm0(Alice(), tail, arg)
+      case Bob() => parseTerm0(Bob(), tail, arg)
+      case Mother() => parseLabelToString(tail, do output(mother(arg)))
+      case Her() => parseLabelToString(tail, do input())
+      case Someone() => parseLabelToString(tail, do output(someone()))
+      case Everyone() => parseLabelToString(tail, do output(everyone()))
+      case Trace() => do trace()
+      case Who() => try { // Currently immidiatly gets the answer
+        parseLabelToString(tail, Term0(Who()))
+      } with Split {
+        def split(arg: Sentence[Ls], tail: List[Ls]) = {
+          (whoBoundary {do who()} {parseLabelToString(tail, Empty())}){() => Term0(Identifier("Answer"))}
+       }
+      }
       case _ => Empty()
     }
     case Nil() => arg
   }
 }
 
-// Someone loves everyone
-// whose Present for him did everyones Father see
-// her Father loves everyone 
-// alice loves bob
-// Alice loves her mother
+def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace} = {
+  arg match {
+    case Empty() => parseLabelToString(tail, do output(Term0(front)))
+    case _ => do split(arg, Cons(front, tail))
+  }
+}
+
 
 def test() = {
-  parse([Alice(), Loves(), Her(), Mother()])
+  parse([Who(), Mother(), Alice(), Loves(), Trace()])
 }
 
 def main() = {
-  println(show(test()))
+  println(sentenceToString(test()))
 }
