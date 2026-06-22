@@ -49,7 +49,7 @@ def labelToString(label: Ls): String = {
     case Someone() => " someone"
     case Everyone() => " everyone"
     case AndM() => " ---"
-    case _ => ""
+    case a => " Found something unexpected: '" ++ show(a) ++ "'"
   }
 }
 
@@ -105,11 +105,17 @@ def parse(input: List[Ls]): Sentence[Ls] ={
       resume(Term0(Identifier(" Trace")))
     }
   }
+  with Who {
+    def who() = {
+      println("Parsing failed: ")
+      Empty()
+    }
+  }
 }
 
 
 // Ask about matching on multiple patterns
-def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace} ={
+def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace, Who} ={
   input match {
     case Cons(front, tail) => front match {
       case Loves() => loves(arg, parseLabelToString(tail, Empty()))
@@ -121,11 +127,13 @@ def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[L
       case Someone() => parseLabelToString(tail, do output(someone()))
       case Everyone() => parseLabelToString(tail, do output(everyone()))
       case Trace() => do trace()
+      case Who2() => do who()
       case Who() => try { // Currently immidiatly gets the answer
-        parseLabelToString(tail, Term0(Who()))
+        parseLabelToString(tail, Term0(Who2()))
       } with Split {
         def split(arg: Sentence[Ls], tail: List[Ls]) = {
-          (whoBoundary {do who()} {parseLabelToString(tail, Empty())}){() => Term0(Identifier("Answer"))}
+          println(show(arg))
+          (whoBoundary {() => arg} {parseLabelToString(tail, Empty())}){() => Term0(Identifier("Answer"))}
        }
       }
       case _ => Empty()
@@ -134,7 +142,7 @@ def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[L
   }
 }
 
-def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace} = {
+def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace, Who} = {
   arg match {
     case Empty() => parseLabelToString(tail, do output(Term0(front)))
     case _ => do split(arg, Cons(front, tail))
@@ -143,7 +151,7 @@ def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO
 
 
 def test() = {
-  parse([Who(), Mother(), Alice(), Loves(), Trace()])
+  parse([Who(), Mother(), Bob(), Loves(), Trace()])
 }
 
 def main() = {
