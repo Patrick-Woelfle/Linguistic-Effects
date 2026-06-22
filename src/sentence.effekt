@@ -10,13 +10,15 @@ type Sentence[L] {
   Term1(label: L, argument1: Sentence[L])
   Term0(label: L)
   Quantifier(label: L, argument1: Sentence[L], argument2: Sentence[L])
+  Question1(whPhrase: Sentence[L], question: Sentence[L])
+  Question2(question: {() => Sentence[L]} => Sentence[L] at {})
   Empty()
 }
 
 type Ls {
   // Propositions
   Loves()
-  Say()
+  Says()
   Saw()
   Man()
   Woman()
@@ -24,7 +26,8 @@ type Ls {
   Implies()
   InLoveWith()
   Present()
-  AndP()
+  And()
+  Or()
   Likes()
   True()
   False()
@@ -34,7 +37,6 @@ type Ls {
   OpinionOf()
   Person()
   Nothing()
-  AndT()
   Bob()
   John()
   Alice()
@@ -45,11 +47,13 @@ type Ls {
   // Effektful
   Someone()
   Everyone()
+  He()
+  She()
   Her()
-  AndM()
+  His()
   Who()
   Trace()
-  Who2()
+  Pronoun()
 }
 
 
@@ -58,7 +62,7 @@ def loves(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
 }
 
 def says(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Say(), arg1, arg2)
+  Proposition2(Says(), arg1, arg2)
 }
 
 def saw(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
@@ -82,7 +86,7 @@ def implies(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
 }
 
 def andP(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(AndP(), arg1, arg2)
+  Proposition2(And(), arg1, arg2)
 }
 
 def inLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
@@ -138,7 +142,7 @@ def identifier(string: String): Sentence[Ls] = {
 }
 
 def andT(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
-  Term2(AndT(), arg1, arg2)
+  Term2(And(), arg1, arg2)
 }
 
 def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {

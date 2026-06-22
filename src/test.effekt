@@ -6,6 +6,7 @@ import src/inputOutput
 import src/traceWho
 import src/quantification
 import src/implicature
+import src/parse
 
 
 
@@ -14,25 +15,19 @@ def main() = {
     // --------------- IO ---------------
     test("Simple Pronoun Binding") {
       assert( 
-          ioBoundary[Ls] { 
-            bind(bob).loves(his().mother())
-          }.show(), 
+          parse([Bob(), Loves(), His(), Mother()]).show(), 
           bob.loves(bob.mother()).show()
       )
     }
     test("Douple Pronoun Binding") {
       assert( 
-          ioBoundary[Ls] { 
-            bind(bob).says(he().loves(his().mother))
-          }.show(), 
+          parse([Bob(), Says(), He(), Loves(), His(), Mother()]).show(), 
           bob.says(bob.loves(bob.mother)).show()
       )
     }
     test("Pronoun Usage before binding") {
       assert( 
-          ioBoundary[Ls] { 
-            he().loves(bind(bob).mother())
-          }.show(), 
+          parse([He(), Loves(), Bob(), Mother()]).show(), 
           Empty().loves(bob.mother()).show()
       )
     }
@@ -75,10 +70,7 @@ def main() = {
     }
     // --------------- Quantification ---------------
     test("Simple Quantification") {
-      val aliceLovesEveryonesMother: Sentence[Ls] = quantificationBoundary{
-        alice.loves(everyone().mother())
-      }
-      assert(aliceLovesEveryonesMother.show(), forall(identifier("x0"), alice.loves(identifier("x0").mother())).show())
+      assert(parse([Alice(), Loves(), Everyone(), Mother()]).show(), forall(identifier("x0"), alice.loves(identifier("x0").mother())).show())
     }
     test("Multiple Levels of Quantification") {
       val someoneLovesEveryone: Sentence[Ls] = quantificationBoundary("x"){ {outer} =>  
@@ -91,6 +83,7 @@ def main() = {
     // --------------- Implicature ---------------
     // Todo
     
+
     // --------------- Interactions ---------------
     test("Interaction Trace Boundary, Input Output") {
       val bobLovesHisMother: Sentence[Ls] = ioBoundary {

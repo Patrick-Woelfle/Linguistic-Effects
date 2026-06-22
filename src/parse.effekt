@@ -22,7 +22,7 @@ effect ParseEffekts = {Flip, Abort, Split}
 def labelToString(label: Ls): String = {
   label match {
     case Loves() => " loves"
-    case Say() => " says"
+    case Says() => " says"
     case Saw() => " saw"
     case Man() => " man"
     case Woman() => " woman"
@@ -30,7 +30,8 @@ def labelToString(label: Ls): String = {
     case Implies() => " implies"
     case InLoveWith() => " in love with"
     case Present() => " present"
-    case AndP() => " and"
+    case And() => " and"
+    case Or() => " or"
     case Likes() => " likes"
     case True() => " true"
     case False() => " false"
@@ -39,7 +40,6 @@ def labelToString(label: Ls): String = {
     case OpinionOf() => " opinion of"
     case Person() => " person"
     case Nothing() => " nothing"
-    case AndT() => " and"
     case Bob() => " Bob"
     case John() => " John"
     case Alice() => " Alice"
@@ -48,8 +48,14 @@ def labelToString(label: Ls): String = {
     case ForAll() => " for all"
     case Someone() => " someone"
     case Everyone() => " everyone"
-    case AndM() => " ---"
-    case a => " Found something unexpected: '" ++ show(a) ++ "'"
+    case He() => " he"
+    case She() => " she"
+    case Her() => " her"
+    case His() => " his"
+    case Who() => " who"
+    case Trace() => " __"
+    case Pronoun() => " pronoun"
+    //case a => " Found something unexpected: '" ++ show(a) ++ "'"
   }
 }
 
@@ -75,6 +81,10 @@ def sentenceToString(s: Sentence[Ls]): String = {
       labelToString(label)
     case Quantifier(label, argument1, argument2) => 
       labelToString(label) ++ sentenceToString(argument1) ++ " ." ++ sentenceToString(argument2)
+    case Question1(whPhrase, rest) =>
+      sentenceToString(whPhrase) ++ sentenceToString(rest)
+    case Question2(question) =>
+      show(question)
     case Empty() => 
       " Empty"
   }
@@ -84,7 +94,7 @@ def parse(input: List[Ls]): Sentence[Ls] ={
   try {
     ioBoundary[Ls] {
       quantificationBoundary{
-        parseLabelToString(input, Empty())
+        removeEffectfullWords(labelToSentence(input, Empty()))
       }
     }
   } with Abort { // Currently not used
@@ -94,11 +104,11 @@ def parse(input: List[Ls]): Sentence[Ls] ={
     }
   } with Flip { // Currently not used
     def flip() = {
-      Proposition2(AndM(), resume(false), resume(true))
+      Proposition2(Or(), resume(false), resume(true))
     }
   } with Split { // Used, when two Term0s appear after another
     def split(arg: Sentence[Ls], tail: List[Ls]) = {
-      Proposition2(AndM(), resume(arg), parse(tail))
+      Proposition2(And(), resume(arg), parse(tail))
     }
   } with Trace {
     def trace() = {
@@ -115,43 +125,78 @@ def parse(input: List[Ls]): Sentence[Ls] ={
 
 
 // Ask about matching on multiple patterns
-def parseLabelToString(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace, Who} ={
+def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} ={
   input match {
     case Cons(front, tail) => front match {
-      case Loves() => loves(arg, parseLabelToString(tail, Empty()))
-      case Say() => says(arg, parseLabelToString(tail, Empty()))
+      case Loves() => loves(arg, labelToSentence(tail, Empty()))
+      case Says() => says(arg, labelToSentence(tail, Empty()))
       case Alice() => parseTerm0(Alice(), tail, arg)
       case Bob() => parseTerm0(Bob(), tail, arg)
-      case Mother() => parseLabelToString(tail, do output(mother(arg)))
-      case Her() => parseLabelToString(tail, do input())
-      case Someone() => parseLabelToString(tail, do output(someone()))
-      case Everyone() => parseLabelToString(tail, do output(everyone()))
-      case Trace() => do trace()
-      case Who2() => do who()
-      case Who() => try { // Currently immidiatly gets the answer
-        parseLabelToString(tail, Term0(Who2()))
+      case Mother() => labelToSentence(tail, mother(arg))
+      case He() => labelToSentence(tail, Term0(Pronoun()))
+      case She() => labelToSentence(tail, Term0(Pronoun()))
+      case Her() => labelToSentence(tail, Term0(Pronoun()))
+      case His() => labelToSentence(tail, Term0(Pronoun()))
+      case Someone() => labelToSentence(tail, Term0(Someone()))
+      case Everyone() => labelToSentence(tail, Term0(Everyone()))
+      case Trace() => labelToSentence(tail, Term0(Trace()))
+      case Who() => try {
+        labelToSentence(tail, Term0(Who()))
       } with Split {
-        def split(arg: Sentence[Ls], tail: List[Ls]) = {
-          println(show(arg))
-          (whoBoundary {() => arg} {parseLabelToString(tail, Empty())}){() => Term0(Identifier("Answer"))}
-       }
+        def split(whPhrase: Sentence[Ls], tail: List[Ls]) = {
+          Question1(whPhrase, labelToSentence(tail, Empty()))
+        }
       }
-      case _ => Empty()
+      case other => Term0(Identifier("Found something unexpected: " ++ show(other)))
     }
     case Nil() => arg
   }
 }
 
-def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], ParseEffekts, Trace, Who} = {
+def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} = {
   arg match {
-    case Empty() => parseLabelToString(tail, do output(Term0(front)))
+    case Empty() => labelToSentence(tail, Term0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
 
+def removeEffectfullWords(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], Trace, Who} = {
+  input match {
+    case Proposition3(label, argument1, argument2, argument3) => 
+      Proposition3(label, removeEffectfullWords(argument1), removeEffectfullWords(argument2), removeEffectfullWords(argument3))
+    case Proposition2(label, argument1, argument2) => 
+      Proposition2(label, removeEffectfullWords(argument1), removeEffectfullWords(argument2))
+    case Proposition1(label, argument1) => 
+      Proposition1(label, removeEffectfullWords(argument1))
+    case Proposition0(label) => 
+      Proposition0(label)
+    case Term3(label, argument1, argument2, argument3) => 
+      do output(Term3(label, removeEffectfullWords(argument1), removeEffectfullWords(argument2), removeEffectfullWords(argument3)))
+    case Term2(label, argument1, argument2) => 
+      do output(Term2(label, removeEffectfullWords(argument1), removeEffectfullWords(argument2)))
+    case Term1(label, argument1) => 
+      do output(Term1(label, removeEffectfullWords(argument1)))
+    case Term0(label ) => 
+      label match {
+          case Pronoun() => do input()
+          case Someone() => do output(do someone())
+          case Everyone() => do output(do everyone())
+          case _ => do output(input)
+        }
+    case Quantifier(label, argument1, argument2) =>
+      do output(input);
+      Quantifier(label, removeEffectfullWords(argument1), removeEffectfullWords(argument2))
+    case Question1(whPhrase, question) => Question2(whoBoundary{() => whPhrase}{() => question})
+    case Question2(question) => input
+    case Empty() => 
+      Empty()
+  }
+}
+
+
 
 def test() = {
-  parse([Who(), Mother(), Bob(), Loves(), Trace()])
+  parse([Bob(), Loves(), His(), Mother()])
 }
 
 def main() = {
