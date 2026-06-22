@@ -1,4 +1,4 @@
-module playground
+module sentence
 
 type Sentence[L] {
   Proposition3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
@@ -49,6 +49,7 @@ type Ls {
   AndM()
   Who()
   Trace()
+  Who2()
 }
 
 
