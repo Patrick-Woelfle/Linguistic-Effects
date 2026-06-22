@@ -3,6 +3,8 @@ module implicature
 import src/sentence
 
 
+// Should be reworked, currently not clear what it is supposed to do
+
 interface Implicature {
   def add(sentence1: Sentence[Ls], sentence2: Sentence[Ls]): Sentence[Ls]
   def assume(sentence1: Sentence[Ls]): Sentence[Ls]
