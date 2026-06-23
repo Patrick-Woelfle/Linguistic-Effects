@@ -1,0 +1,56 @@
+module parse
+
+import src/parse
+import src/sentence
+import map
+import io/console
+import io
+
+
+interface Lookup {
+  def lookup(lss: List[Ls]): Ls
+}
+
+
+def lookup(lss: List[Ls]): Ls / {Console, Lookup} = {
+  do lookup(lss)
+}
+
+def evaluate(s: Sentence[Ls]): Ls / {Console, Lookup} = {
+  s match {
+    case Prop3(label, arg1, arg2, arg3) => lookup([label, evaluate(arg1), evaluate(arg2), evaluate(arg3)])
+    case Prop2(label, arg1, arg2) => lookup([label, evaluate(arg1), evaluate(arg2)])
+    case Prop1(label, arg1) => lookup([label, evaluate(arg1)])
+    case Prop0(label) => lookup([label])
+    case Term3(label, arg1, arg2, arg3) => lookup([label, evaluate(arg1), evaluate(arg2), evaluate(arg3)])
+    case Term2(label, arg1, arg2) => lookup([label, evaluate(arg1), evaluate(arg2)])
+    case Term1(label, arg1) => lookup([label, evaluate(arg1)])
+    case Term0(label) => lookup([label])
+    case Quantifier(label, arg1, arg2) => lookup([label, evaluate(arg1), evaluate(arg2)])
+    case Question1(whPhrase, question) => <>
+    case Question2(question) => <>
+    case Empty() => lookup([])
+  }
+} 
+
+def main(): Unit  = { console {
+    var table = emptyGeneric[List[Ls], Ls]
+    try {
+      println(show(evaluate(bob.loves(bob.mother()))))
+    println(show(table.toList()))
+    } with Lookup {
+      def lookup(lss: List[Ls]) = {
+        resume(getOrElse(table, lss) { () => 
+          do writeLine("No entry for " ++ show(lss) ++ " found, is it true/how should this be called?")
+          val answer = do readLine()
+          answer match {
+            case "true" => table = table.put(lss, True()); True()
+            case "false" => table = table.put(lss, False()); False()
+            case other => table = table.put(lss, Identifier(other)); Identifier(other)
+          }
+        })
+      }
+    }
+    
+  }
+}
