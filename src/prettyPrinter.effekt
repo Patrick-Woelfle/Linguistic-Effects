@@ -1,0 +1,62 @@
+module prettyPrinter
+
+import src/sentence
+
+def labelToString(label: Ls): String = {
+  label match {
+    case Loves() => " loves"
+    case Says() => " says"
+    case Saw() => " saw"
+    case Man() => " man"
+    case Woman() => " woman"
+    case Respects() => " respects"
+    case Implies() => " implies"
+    case InLoveWith() => " in love with"
+    case Present() => " present"
+    case And() => " and"
+    case Or() => " or"
+    case Likes() => " likes"
+    case True() => " true"
+    case False() => " false"
+    case Father() => "'s father"
+    case Mother() => "'s mother"
+    case OpinionOf() => " opinion of"
+    case Person() => " person"
+    case Nothing() => " nothing"
+    case Bob() => " Bob"
+    case John() => " John"
+    case Alice() => " Alice"
+    case Identifier(string) => " " ++ string
+    case Exists() => " exists"
+    case ForAll() => " for all"
+    case Someone() => " someone"
+    case Everyone() => " everyone"
+    case He() => " he"
+    case She() => " she"
+    case Her() => " her"
+    case His() => " his"
+    case Who() => " who"
+    case Trace() => " __"
+    case Pronoun() => " pronoun"
+    //case a => " Found something unexpected: '" ++ show(a) ++ "'"
+  }
+}
+
+
+
+def sentenceToString(s: Sentence[Ls]): String = {
+  s match {
+    case Prop3(label, arg1, arg2, arg3) => labelToString(label) ++ sentenceToString(arg1) ++ sentenceToString(arg2) ++ sentenceToString(arg3)
+    case Prop2(label, arg1, arg2) => sentenceToString(arg1) ++ labelToString(label) ++ sentenceToString(arg2)
+    case Prop1(label, arg1) => labelToString(label) ++ sentenceToString(arg1)
+    case Prop0(label) => labelToString(label)
+    case Term3(label, arg1, arg2, arg3) => labelToString(label) ++ sentenceToString(arg1) ++ sentenceToString(arg2) ++ sentenceToString(arg3)
+    case Term2(label, arg1, arg2) => sentenceToString(arg1) ++ labelToString(label) ++ sentenceToString(arg2)
+    case Term1(label, arg1) => sentenceToString(arg1) ++ labelToString(label)
+    case Term0(label ) => labelToString(label)
+    case Quantifier(label, arg1, arg2) => labelToString(label) ++ sentenceToString(arg1) ++ " ." ++ sentenceToString(arg2)
+    case Question1(whPhrase, rest) => sentenceToString(whPhrase) ++ sentenceToString(rest)
+    case Question2(question) => show(question)
+    case Empty() => " Empty"
+  }
+}

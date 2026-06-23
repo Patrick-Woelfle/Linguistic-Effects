@@ -1,10 +1,10 @@
 module sentence
 
 type Sentence[L] {
-  Proposition3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
-  Proposition2(label: L, argument1: Sentence[L], argument2: Sentence[L])
-  Proposition1(label: L, argument1: Sentence[L])
-  Proposition0(label: L)
+  Prop3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
+  Prop2(label: L, argument1: Sentence[L], argument2: Sentence[L])
+  Prop1(label: L, argument1: Sentence[L])
+  Prop0(label: L)
   Term3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
   Term2(label: L, argument1: Sentence[L], argument2: Sentence[L])
   Term1(label: L, argument1: Sentence[L])
@@ -16,7 +16,7 @@ type Sentence[L] {
 }
 
 type Ls {
-  // Propositions
+  // Props
   Loves()
   Says()
   Saw()
@@ -58,51 +58,51 @@ type Ls {
 
 
 def loves(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Loves(), arg1, arg2)
+  Prop2(Loves(), arg1, arg2)
 }
 
 def says(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Says(), arg1, arg2)
+  Prop2(Says(), arg1, arg2)
 }
 
 def saw(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Saw(), arg1, arg2)
+  Prop2(Saw(), arg1, arg2)
 }
 
 def man(arg1: Sentence[Ls]) = {
-  Proposition1(Man(), arg1)
+  Prop1(Man(), arg1)
 }
 
 def woman(arg1: Sentence[Ls]) = {
-  Proposition1(Woman(), arg1)
+  Prop1(Woman(), arg1)
 }
 
 def respects(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Saw(), arg1, arg2)
+  Prop2(Saw(), arg1, arg2)
 }
 
 def implies(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Implies(), arg1, arg2)
+  Prop2(Implies(), arg1, arg2)
 }
 
 def andP(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(And(), arg1, arg2)
+  Prop2(And(), arg1, arg2)
 }
 
 def inLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(InLoveWith(), arg1, arg2)
+  Prop2(InLoveWith(), arg1, arg2)
 }
 
 def likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
-  Proposition2(Likes(), arg1, arg2)
+  Prop2(Likes(), arg1, arg2)
 }
 
 def true_(): Sentence[Ls] = {
-  Proposition0(True())
+  Prop0(True())
 }
 
 def false_(): Sentence[Ls] = {
-  Proposition0(False())
+  Prop0(False())
 }
 
 def father(arg1: Sentence[Ls]) = {
