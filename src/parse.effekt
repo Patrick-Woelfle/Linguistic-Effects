@@ -2,7 +2,7 @@ module parse
 
 import src/sentence
 import src/inputOutput
-import src/Quantification
+import src/quantification
 import src/traceWho
 import src/prettyPrinter
 
