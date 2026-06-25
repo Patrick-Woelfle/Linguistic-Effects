@@ -60,3 +60,20 @@ def sentenceToString(s: Sentence[Ls]): String = {
     case Empty() => " Empty"
   }
 }
+
+def sentenceToStringParan(s: Sentence[Ls]): String = {
+  s match {
+    case Prop3(label, arg1, arg2, arg3) => labelToString(label) ++ "(" ++ sentenceToStringParan(arg1) ++ "," ++ sentenceToStringParan(arg2) ++ "," ++ sentenceToStringParan(arg3) ++ ")"
+    case Prop2(label, arg1, arg2) => labelToString(label) ++ "(" ++ sentenceToStringParan(arg1) ++ "," ++ sentenceToStringParan(arg2) ++ ")"
+    case Prop1(label, arg1) => labelToString(label) ++ "(" ++ sentenceToStringParan(arg1) ++ ")"
+    case Prop0(label) => labelToString(label)
+    case Term3(label, arg1, arg2, arg3) => labelToString(label) ++ "(" ++ sentenceToStringParan(arg1) ++ "," ++ sentenceToStringParan(arg2) ++ "," ++ sentenceToStringParan(arg3) ++ ")"
+    case Term2(label, arg1, arg2) => labelToString(label) ++ "(" ++ sentenceToStringParan(arg1) ++ "," ++ sentenceToStringParan(arg2) ++ ")"
+    case Term1(label, arg1) => sentenceToStringParan(arg1) ++ labelToString(label)
+    case Term0(label ) => labelToString(label)
+    case Quantifier(label, arg1, arg2) => labelToString(label) ++ sentenceToStringParan(arg1) ++ " ." ++ "(" ++ sentenceToStringParan(arg2) ++ ")"
+    case Question1(whPhrase, rest) => sentenceToStringParan(whPhrase) ++ sentenceToStringParan(rest)
+    case Question2(question) => show(question)
+    case Empty() => " Empty"
+  }
+}
