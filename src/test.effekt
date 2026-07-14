@@ -113,8 +113,16 @@ def main() = {
           (whoBoundary {do who().present(he())} {bind(father(everyone())).saw(__())}) {answer()}
         }
       }
-      def everyonesFatherSawBobsPresentForHim() = whosePresentforhimDideveryonesFatherSee{() => bob}
-      // assert(everyonesFatherSawBobsPresentForHim().show(), show(forall(identifier("x0"), identifier("x0").father().saw(present(bob)))))
+      val everyonesFatherSawBobsPresentForHim = show(whosePresentforhimDideveryonesFatherSee{() => bob})
+      val other = show(forall(identifier("x0"), identifier("x0").father().saw(bob.present(identifier("x0").father()))))
+      assert(everyonesFatherSawBobsPresentForHim, other)
+      def whoseMotherLovesHisFather{answer: () => Sentence[Ls] / {Quantification[Ls], Output[Ls]}}: Sentence[Ls] = quantificationBoundary {
+        ioBoundary[Ls] {
+          (whoBoundary {do who().mother()} {__().loves(his().father())}) {answer()}
+        }
+      }
+      val everyonesMotherLovesTheirFather = show(whoseMotherLovesHisFather{() => bind(everyone())})
+      assert(everyonesMotherLovesTheirFather, show(forall(identifier("x0"), identifier("x0").mother().loves(identifier("x0").father()))))
     }
   }
 }
