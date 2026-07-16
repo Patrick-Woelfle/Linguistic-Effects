@@ -14,31 +14,46 @@ interface Split {
   def split(first: Sentence[Ls], tail: List[Ls]): Sentence[Ls]
 }
 
-effect ParseEffekts = {Flip, Split} 
+effect ParseEffekts = {Split} 
+
+def parseAllOptions(input: List[Ls]): List[Sentence[Ls]] = {
+  evokeEffectsEntry(labelToSentenceEntry(input), true)
+}
 
 def parse(input: List[Ls]): Sentence[Ls] = {
-    val intermidiatSentence = try {
-      labelToSentence(input, Empty())
-    } with Flip { // Currently not used
-      def flip() = {
-        Prop2(Or(), resume(false), resume(true))
-      }
-    } with Split { // Used, when two Term0s appear after another
-      def split(arg: Sentence[Ls], tail: List[Ls]) = {
-        Prop2(And(), resume(arg), parse(tail))
-      }
-    }
-  try {
-    ioBoundary[Ls] {
-      quantificationBoundary{
-        evokeEffects(intermidiatSentence)
-      }
+  headOption(evokeEffectsEntry(labelToSentenceEntry(input), false)) match {
+    case Some(a) => a
+    case None() => Empty()
+  }
+}
+
+def labelToSentenceEntry(input: List[Ls]): Sentence[Ls] = {
+ try {
+    labelToSentence(input, Empty())
+  } with Split { // Used, when two Term0s appear after another
+    def split(arg: Sentence[Ls], tail: List[Ls]) = {
+      Prop2(And(), resume(arg), labelToSentenceEntry(tail))
     }
   }
-  with Who {
+}
+
+def evokeEffectsEntry(input: Sentence[Ls], allOptions: Bool): List[Sentence[Ls]] = {
+  try {
+    [ioBoundary[Ls] {
+      quantificationBoundary{
+        evokeEffects(input)
+      }
+    }]
+  } with Who {
     def who() = {
-      println("Parsing failed: ")
-      Empty()
+      println("Parsing failed, unexpected who found")
+      [Empty()]
+    }
+  } with Flip { // Currently not used
+    def flip() = {
+      if (allOptions) {
+        resume(false).append(resume(true))
+      } else resume(true)
     }
   }
 }
@@ -80,37 +95,67 @@ def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {Pa
   }
 }
 
-def evokeEffects(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], Who} = {
+def evokeEffects(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} = {
   input match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, evokeEffects(arg1), evokeEffects(arg2))
     case Prop1(label, arg1) => Prop1(label, evokeEffects(arg1))
     case Prop0(label) => Prop0(label)
-    case Term3(label, arg1, arg2, arg3) => do output(Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3)))
-    case Term2(label, arg1, arg2) => do output(Term2(label, evokeEffects(arg1), evokeEffects(arg2)))
-    case Term1(label, arg1) => do output(Term1(label, evokeEffects(arg1)))
+    case Term3(label, arg1, arg2, arg3) => 
+      if (do flip()) {
+        do output(Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3)))
+      } else {
+        Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
+      }
+    case Term2(label, arg1, arg2) => 
+      if (do flip()) {
+        do output(Term2(label, evokeEffects(arg1), evokeEffects(arg2)))
+      } else {
+        Term2(label, evokeEffects(arg1), evokeEffects(arg2))
+      }
+    case Term1(label, arg1) => 
+      if (do flip()) {
+        do output(Term1(label, evokeEffects(arg1)))
+      } else {
+        Term1(label, evokeEffects(arg1))
+      }
     case Term0(label ) => label match {
-          case Pronoun() => do input()
-          case Someone() => do output(do someone())
-          case Everyone() => do output(do everyone())
-          case _ => do output(input)
+          case Pronoun() => 
+            do input()
+          case Someone() => 
+            if (do flip()) {
+              do output(do someone())
+            } else {
+              do someone()
+            }
+          case Everyone() =>
+            if (do flip()) {
+              do output(do everyone())
+            } else {
+              do everyone()
+            }
+          case _ => 
+            if (do flip()) {
+              do output(input)
+            } else {
+              input
+            }
         }
     case Question1(whPhrase, question) => Question2(whoBoundary{() => whPhrase}{() => question})
     case Question2(question) => input
     case Quantifier(label, arg1, arg2) => {
       do output(Quantifier(label, evokeEffects(arg1), evokeEffects(arg2)))
     }
-    
     case Empty() => Empty()
   }
 }
 
 
-
 def test() = {
-  parse([Bob(), Loves(), His(), Mother()])
+  parseAllOptions([Everyone(), Loves(), His(), Mother()])
 }
 
 def main() = {
   println(sentenceToString(test()))
 }
+
