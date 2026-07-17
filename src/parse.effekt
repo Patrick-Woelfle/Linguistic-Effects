@@ -65,6 +65,7 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
     case Cons(front, tail) => front match {
       case Loves() => loves(arg, labelToSentence(tail, Empty()))
       case Says() => says(arg, labelToSentence(tail, Empty()))
+      case Saw() => saw(arg, labelToSentence(tail, Empty()))
       case Alice() => parseTerm0(Alice(), tail, arg)
       case Bob() => parseTerm0(Bob(), tail, arg)
       case Mother() => labelToSentence(tail, mother(arg))
@@ -75,6 +76,8 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
       case Someone() => labelToSentence(tail, Term0(Someone()))
       case Everyone() => labelToSentence(tail, Term0(Everyone()))
       case Trace() => labelToSentence(tail, Term0(Trace()))
+      case True() => labelToSentence(tail, Prop0(True()))
+      case False() => labelToSentence(tail, Prop0(False()))
       case Who() => try { 
         labelToSentence(tail, Term0(Who()))
       } with Split {
