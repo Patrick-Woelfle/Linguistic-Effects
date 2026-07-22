@@ -49,7 +49,7 @@ def evokeEffectsEntry(input: Sentence[Ls], allOptions: Bool): List[Sentence[Ls]]
       println("Parsing failed, unexpected who found")
       [Empty()]
     }
-  } with Flip { // Currently not used
+  } with Flip {
     def flip() = {
       if (allOptions) {
         resume(false).append(resume(true))
@@ -59,7 +59,6 @@ def evokeEffectsEntry(input: Sentence[Ls], allOptions: Bool): List[Sentence[Ls]]
 }
 
 
-// Ask about matching on multiple patterns
 def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} ={
   input match {
     case Cons(front, tail) => front match {
@@ -76,8 +75,8 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
       case Someone() => labelToSentence(tail, Term0(Someone()))
       case Everyone() => labelToSentence(tail, Term0(Everyone()))
       case Trace() => labelToSentence(tail, Term0(Trace()))
-      case True() => labelToSentence(tail, Prop0(True()))
-      case False() => labelToSentence(tail, Prop0(False()))
+      case True() => parseProp0(True(), tail, arg)
+      case False() => parseProp0(False(), tail, arg)
       case Who() => try { 
         labelToSentence(tail, Term0(Who()))
       } with Split {
@@ -94,6 +93,13 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
 def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} = {
   arg match {
     case Empty() => labelToSentence(tail, Term0(front))
+    case _ => do split(arg, Cons(front, tail))
+  }
+}
+
+def parseProp0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} = {
+  arg match {
+    case Empty() => labelToSentence(tail, Prop0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
@@ -146,9 +152,7 @@ def evokeEffects(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls
         }
     case Question1(whPhrase, question) => Question2(whoBoundary{() => whPhrase}{() => question})
     case Question2(question) => input
-    case Quantifier(label, arg1, arg2) => {
-      do output(Quantifier(label, evokeEffects(arg1), evokeEffects(arg2)))
-    }
+    case Quantifier(label, arg1, arg2) => (Quantifier(label, evokeEffects(arg1), evokeEffects(arg2)))
     case Empty() => Empty()
   }
 }
