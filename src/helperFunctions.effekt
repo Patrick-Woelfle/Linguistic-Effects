@@ -1,0 +1,59 @@
+module helperFunctions
+
+import src/sentence
+
+
+def contains(s: String, substring: String): Bool = {
+  if (substring.length > s.length)
+    false
+  else {
+    def loop(i: Int): Bool =
+      if (i > s.length - substring.length)
+        false
+      else if (s.substring(i, i + substring.length) == substring)
+        true
+      else
+        loop(i + 1)
+    loop(0)
+  }
+}
+
+def removeRedundantTerms(s: Sentence[Ls]): Sentence[Ls] = {
+  s match {
+    case Prop2(And(), Prop0(True()), rest) => println("a"); removeRedundantTerms(rest)
+    case Prop2(Or(), Prop0(False()), rest) => println("b"); removeRedundantTerms(rest)
+    case other => callRecursiveFunction(other) {removeRedundantTerms}
+  }
+}
+
+def callRecursiveFunction(s: Sentence[Ls]) {f: Sentence[Ls] => Sentence[Ls]}: Sentence[Ls] = {
+  s match {
+    case Prop3(label, arg1, arg2, arg3) => Prop3(label, f(arg1), f(arg2), f(arg3))
+    case Prop2(label, arg1, arg2) => Prop2(label, f(arg1), f(arg2))
+    case Prop1(label, arg1) => Prop1(label, f(arg1))
+    case Prop0(label) => s
+    case Term3(label, arg1, arg2, arg3) => Term3(label, f(arg1), f(arg2), f(arg3))
+    case Term2(label, arg1, arg2) => Term2(label, f(arg1), f(arg2))
+    case Term1(label, arg1) => Term1(label, f(arg1))
+    case Term0(label) => s
+    case Quantifier(label, arg1, arg2) => Quantifier(label, f(arg1), f(arg2))
+    case Question1(whPhrase, rest) => Question1(f(whPhrase), f(rest))
+    case Question2(question) => Question2(question)
+    case Empty() => Empty()
+  }
+}
+
+def containsSubstring(s: String, substring: String): Bool = {
+  if (substring.length > s.length)
+    false
+  else {
+    def loop(i: Int): Bool =
+      if (i > s.length - substring.length)
+        false
+      else if (s.substring(i, i + substring.length) == substring)
+        true
+      else
+        loop(i + 1)
+    loop(0)
+  }
+}

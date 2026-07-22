@@ -17,7 +17,6 @@ interface EvaluateEffects {
 }
 
 
-
 def gatherTerms(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, gatherTerms(arg1), gatherTerms(arg2), gatherTerms(arg3))
@@ -104,6 +103,7 @@ def replace(sentence: Sentence[Ls], replaced: Sentence[Ls], replacee: Sentence[L
   }
 } 
 
+
 def evaluateHelper(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => do lookupProp(Prop3(label, arg1, arg2, arg3))
@@ -124,6 +124,7 @@ def evaluateHelper(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
     case Empty() => Empty()
   }
 }
+
 
 def sentenceAnd(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
   x match {
@@ -148,6 +149,7 @@ def sentenceAnd(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
     case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
   }
 }
+
 
 def sentenceOr(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
   x match {
@@ -180,12 +182,13 @@ def evaluate(s: Sentence[Ls]): Bool = {
     // println("Original Sentence: \"" ++ sentenceToString(input) ++ "\"")
     // println("Evaluation of Sentence: \"" ++ sentenceToString(evaluationSentence) ++ "\"")
     var sentenceWithoutQuantifiers = removeQuantifiers(gatherTerms(s))
+    println("All terms: " ++ show(terms))
     println("Sentence without quantifiers: \"" ++ sentenceToStringParan(sentenceWithoutQuantifiers) ++ "\"")
     var evaluationSentence = evaluateHelper(sentenceWithoutQuantifiers)
     evaluationSentence match {
       case Prop0(True()) => true
       case Prop0(False()) => false
-      case other => println("Unexpected Result: " ++ show(other)); false
+      case other => println("Sentence can't be reduced to true or false: " ++ show(other)); false
     }
   } with EvaluateEffects {
     def lookupTerm(s: Sentence[Ls]) = {
@@ -222,7 +225,10 @@ def evaluate(s: Sentence[Ls]): Bool = {
   }
 }
 
+
 def main(): Unit  = { 
-    var input = parse([Everyone(), Says(), Someone(), Loves(), Bob(), Mother()])
+    var input = parse([Everyone(), Says(), True()])
+    println(sentenceToString(input))
     println(show(evaluate(input)))
 }
+
