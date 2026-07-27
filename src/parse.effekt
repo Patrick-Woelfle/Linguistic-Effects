@@ -5,6 +5,8 @@ import src/inputOutput
 import src/quantification
 import src/traceWho
 import src/prettyPrinter
+import src/helperFunctions
+
 
 interface Flip {
   def flip(): Bool
@@ -17,7 +19,9 @@ interface Split {
 effect ParseEffekts = {Split} 
 
 def parseAllOptions(input: List[Ls]): List[Sentence[Ls]] = {
-  evokeEffectsEntry(labelToSentenceEntry(input), true)
+  val allDenotations = evokeEffectsEntry(labelToSentenceEntry(input), true)
+  val denotationsWithoutDuplicates = allDenotations.filterDuplicates()
+  denotationsWithoutDuplicates.filter{sentenceDoesntContainEmpty}
 }
 
 def parse(input: List[Ls]): Sentence[Ls] = {
@@ -159,7 +163,7 @@ def evokeEffects(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls
 
 
 def test() = {
-  parseAllOptions([Everyone(), Loves(), His(), Mother()])
+  parseAllOptions([Everyone(), Says(), Bob(), Loves(), His(), Mother()])
 }
 
 def main() = {

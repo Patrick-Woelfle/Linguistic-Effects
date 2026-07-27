@@ -26,7 +26,7 @@ def removeRedundantTerms(s: Sentence[Ls]): Sentence[Ls] = {
   }
 }
 
-def callRecursiveFunction(s: Sentence[Ls]) {f: Sentence[Ls] => Sentence[Ls]}: Sentence[Ls] = {
+def callRecursiveFunction[A](s: Sentence[A]) {f: Sentence[A] => Sentence[A]}: Sentence[A] = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, f(arg1), f(arg2), f(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, f(arg1), f(arg2))
@@ -43,6 +43,7 @@ def callRecursiveFunction(s: Sentence[Ls]) {f: Sentence[Ls] => Sentence[Ls]}: Se
   }
 }
 
+
 def containsSubstring(s: String, substring: String): Bool = {
   if (substring.length > s.length)
     false
@@ -55,5 +56,36 @@ def containsSubstring(s: String, substring: String): Bool = {
       else
         loop(i + 1)
     loop(0)
+  }
+}
+
+def filterDuplicates(sentences: List[Sentence[Ls]]): List[Sentence[Ls]] = {
+  def filter(remaining: List[Sentence[Ls]], filtered: List[Sentence[Ls]]): List[Sentence[Ls]] =
+    remaining match {
+      case Nil() => filtered
+      case Cons(head, tail) => {
+        if (tail.foldLeft(false) {(x, y) => x || (show(y) == show(head))}) 
+          filter(tail, filtered)
+        else
+          filter(tail, Cons(head, filtered))
+      }
+    }
+  filter(sentences, Nil())
+}
+
+def sentenceDoesntContainEmpty(sentence: Sentence[Ls]): Bool = {
+    sentence match {
+    case Empty() => false
+    case Prop3(label, arg1, arg2, arg3) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2) && sentenceDoesntContainEmpty(arg3)
+    case Prop2(label, arg1, arg2) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2)
+    case Prop1(label, arg1) => sentenceDoesntContainEmpty(arg1)
+    case Prop0(label) => true
+    case Term3(label, arg1, arg2, arg3) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2) && sentenceDoesntContainEmpty(arg3)
+    case Term2(label, arg1, arg2) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2)
+    case Term1(label, arg1) => sentenceDoesntContainEmpty(arg1)
+    case Term0(label) => true
+    case Quantifier(label, arg1, arg2) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2)
+    case Question1(whPhrase, rest) => sentenceDoesntContainEmpty(whPhrase) && sentenceDoesntContainEmpty(rest)
+    case Question2(question) => true
   }
 }
