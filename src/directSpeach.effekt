@@ -1,0 +1,26 @@
+module speaker
+
+import src/sentence
+
+interface Speaker[L] {
+  def speaker(): Sentence[L]
+}
+
+def said(speaker: Sentence[Ls]){spoken: {Speaker[Ls]} => Sentence[Ls] / {Speaker[Ls]}}: Sentence[Ls] = {
+  try {
+    speaker.says(spoken{capSpeaker})
+  } with capSpeaker: Speaker[Ls] {
+    def speaker() = {
+      resume(speaker)
+    }
+  }
+}
+
+def said(speaker: Sentence[Ls]){spoken: () => Sentence[Ls] / {Speaker[Ls]}}: Sentence[Ls] = {
+  said(speaker){ {_} => spoken()}
+}
+
+// Helper Definitions
+def me() = do speaker[Ls]()
+def i() = do speaker[Ls]()
+
