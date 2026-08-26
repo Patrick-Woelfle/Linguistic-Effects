@@ -15,7 +15,7 @@ type S[L] {
   Quantifier(label: L, argument1: S[L], argument2: S[L])
   Question1(whPhrase: S[L], question: S[L])
   Question2(question: {() => S[L]} => S[L] at {})
-  Empty()
+  Unknown()
 }
 
 type Ls {

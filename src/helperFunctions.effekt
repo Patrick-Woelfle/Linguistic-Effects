@@ -39,7 +39,7 @@ def callRecursiveFunction[A](s: S[A]) {f: S[A] => S[A]}: S[A] = {
     case Quantifier(label, arg1, arg2) => Quantifier(label, f(arg1), f(arg2))
     case Question1(whPhrase, rest) => Question1(f(whPhrase), f(rest))
     case Question2(question) => Question2(question)
-    case Empty() => Empty()
+    case Unknown() => Unknown()
   }
 }
 
@@ -75,7 +75,7 @@ def filterDuplicates(sentences: List[S[Ls]]): List[S[Ls]] = {
 
 def sentenceDoesntContainEmpty(sentence: S[Ls]): Bool = {
     sentence match {
-    case Empty() => false
+    case Unknown() => false
     case Prop3(label, arg1, arg2, arg3) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2) && sentenceDoesntContainEmpty(arg3)
     case Prop2(label, arg1, arg2) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2)
     case Prop1(label, arg1) => sentenceDoesntContainEmpty(arg1)

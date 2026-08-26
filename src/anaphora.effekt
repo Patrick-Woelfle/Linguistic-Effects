@@ -1,0 +1,55 @@
+module anaphora
+
+import src/sentence
+
+
+interface Get[L] {
+  def get(): S[L]
+}
+
+interface Set[L]{
+  def set(a: S[L]): S[L]
+}
+  
+effect Anaphora[L] = {Get[L], Set[L]} 
+
+def getBoundary[L]{body: () => S[L] / {Get[L]}}: S[L] => S[L] at {body} = box { a =>
+  try {
+      body()
+  } with Get[L] {
+    def get() = resume(a)
+  }
+}
+
+def anaphora[L]{body: {Get[L]} {Set[L]} => S[L] / {Get[L], Set[L]}}: S[L] = {
+  var cache = Unknown()
+  try {
+    body{capGet} {capSet}
+  } with capGet: Get[L] {
+    def get() = {
+      resume(cache)
+    }
+  } with capSet: Set[L] {
+    def set(s) = {
+      cache = s
+      resume(s)
+    }
+  }
+}
+
+def anaphora[L]() { body: => S[L] / {Get[L], Set[L]}}: S[L] = {
+  anaphora[L]{ {_} {_} => body()}
+}
+
+
+// Helper Definitions
+def he(): S[Ls] / {Get[Ls]} = do get()
+def she() = he()
+def him() = he()
+def her() = he()
+def his() = he()
+def bind(s: S[Ls]): S[Ls] / {Set[Ls]} = do set(s)
+
+
+
+

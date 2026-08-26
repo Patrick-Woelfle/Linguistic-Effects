@@ -1,7 +1,7 @@
 module traceWho
 
 import src/sentence
-import src/inputOutput
+import src/anaphora
 
 
 interface Trace {
@@ -61,12 +61,12 @@ def who(): S[Ls] / {Trace} = do trace()
 
 
 // Could bind to who[L] or Father
-def whoseFatherDidAliceSaySawHisMother(): S[Ls] = ioBoundary {
+def whoseFatherDidAliceSaySawHisMother(): S[Ls] = anaphora {
   whoBoundary {bind(father(who()))} {__().saw(his().mother())} {bob()}
 }
 
 // Correctly doesn't connect who[L] with his
-def whoDidHisMotherSee(): S[Ls] = ioBoundary { 
+def whoDidHisMotherSee(): S[Ls] = anaphora { 
   whoBoundary {bind(who())} {his().mother().saw( __())} {bob()}
 }
 
@@ -74,8 +74,8 @@ def whoDidHisMotherSee(): S[Ls] = ioBoundary {
 def whoSawWho(): S[Ls] = whoBoundary {who()} {__().saw(who())} {bob()}
 
 // To use IO in incomplete Sentences, boxing is necessary
-def whoLoveshisMother(): {() => S[Ls]} => S[Ls] / {IO[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
-def bobLovesHisMother(): S[Ls] = ioBoundary { (whoLoveshisMother()){() => bind(bob())}}
+def whoLoveshisMother(): {() => S[Ls]} => S[Ls] / {Anaphora[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
+def bobLovesHisMother(): S[Ls] = anaphora { (whoLoveshisMother()){() => bind(bob())}}
 
 
 // ---- Examples that don't work ----

@@ -1,7 +1,6 @@
 module quantification
 
 import src/sentence
-import src/inputOutput
 import src/traceWho
 
 

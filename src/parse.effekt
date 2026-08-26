@@ -1,7 +1,7 @@
 module parse
 
 import src/sentence
-import src/inputOutput
+import src/anaphora
 import src/quantification
 import src/traceWho
 import src/prettyPrinter
@@ -27,13 +27,13 @@ def parseAllOptions(input: List[Ls]): List[S[Ls]] = {
 def parse(input: List[Ls]): S[Ls] = {
   headOption(evokeEffectsEntry(labelToSentenceEntry(input), false)) match {
     case Some(a) => a
-    case None() => Empty()
+    case None() => Unknown()
   }
 }
 
 def labelToSentenceEntry(input: List[Ls]): S[Ls] = {
  try {
-    labelToSentence(input, Empty())
+    labelToSentence(input, Unknown())
   } with Split { // Used, when two Term0s appear after another
     def split(arg: S[Ls], tail: List[Ls]) = {
       Prop2(And(), resume(arg), labelToSentenceEntry(tail))
@@ -43,7 +43,7 @@ def labelToSentenceEntry(input: List[Ls]): S[Ls] = {
 
 def evokeEffectsEntry(input: S[Ls], allOptions: Bool): List[S[Ls]] = {
   try {
-    [ioBoundary[Ls] {
+    [anaphora[Ls] {
       quantificationBoundary{
         evokeEffects(input)
       }
@@ -51,7 +51,7 @@ def evokeEffectsEntry(input: S[Ls], allOptions: Bool): List[S[Ls]] = {
   } with Who {
     def who() = {
       println("Parsing failed, unexpected who found")
-      [Empty()]
+      [Unknown()]
     }
   } with Flip {
     def flip() = {
@@ -66,9 +66,9 @@ def evokeEffectsEntry(input: S[Ls], allOptions: Bool): List[S[Ls]] = {
 def labelToSentence(input: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} ={
   input match {
     case Cons(front, tail) => front match {
-      case Loves() => loves(arg, labelToSentence(tail, Empty()))
-      case Says() => says(arg, labelToSentence(tail, Empty()))
-      case Saw() => saw(arg, labelToSentence(tail, Empty()))
+      case Loves() => loves(arg, labelToSentence(tail, Unknown()))
+      case Says() => says(arg, labelToSentence(tail, Unknown()))
+      case Saw() => saw(arg, labelToSentence(tail, Unknown()))
       case Alice() => parseTerm0(Alice(), tail, arg)
       case Bob() => parseTerm0(Bob(), tail, arg)
       case Mother() => labelToSentence(tail, mother(arg))
@@ -85,7 +85,7 @@ def labelToSentence(input: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} ={
         labelToSentence(tail, Term0(Who()))
       } with Split {
         def split(whPhrase: S[Ls], tail: List[Ls]) = {
-          Question1(whPhrase, labelToSentence(tail, Empty()))
+          Question1(whPhrase, labelToSentence(tail, Unknown()))
         }
       }
       case other => Term0(Identifier("Found something unexpected: " ++ show(other)))
@@ -96,19 +96,19 @@ def labelToSentence(input: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} ={
 
 def parseTerm0(front: Ls, tail: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} = {
   arg match {
-    case Empty() => labelToSentence(tail, Term0(front))
+    case Unknown() => labelToSentence(tail, Term0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
 
 def parseProp0(front: Ls, tail: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} = {
   arg match {
-    case Empty() => labelToSentence(tail, Prop0(front))
+    case Unknown() => labelToSentence(tail, Prop0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
 
-def evokeEffects(input: S[Ls]): S[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} = {
+def evokeEffects(input: S[Ls]): S[Ls] / {Anaphora[Ls], Quantification[Ls], Who, Flip} = {
   input match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, evokeEffects(arg1), evokeEffects(arg2))
@@ -116,40 +116,40 @@ def evokeEffects(input: S[Ls]): S[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} 
     case Prop0(label) => Prop0(label)
     case Term3(label, arg1, arg2, arg3) => 
       if (do flip()) {
-        do output(Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3)))
+        do set(Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3)))
       } else {
         Term3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
       }
     case Term2(label, arg1, arg2) => 
       if (do flip()) {
-        do output(Term2(label, evokeEffects(arg1), evokeEffects(arg2)))
+        do set(Term2(label, evokeEffects(arg1), evokeEffects(arg2)))
       } else {
         Term2(label, evokeEffects(arg1), evokeEffects(arg2))
       }
     case Term1(label, arg1) => 
       if (do flip()) {
-        do output(Term1(label, evokeEffects(arg1)))
+        do set(Term1(label, evokeEffects(arg1)))
       } else {
         Term1(label, evokeEffects(arg1))
       }
     case Term0(label ) => label match {
           case Pronoun() => 
-            do input()
+            do get()
           case Someone() => 
             if (do flip()) {
-              do output(do someone())
+              do set(do someone())
             } else {
               do someone()
             }
           case Everyone() =>
             if (do flip()) {
-              do output(do everyone())
+              do set(do everyone())
             } else {
               do everyone()
             }
           case _ => 
             if (do flip()) {
-              do output(input)
+              do set(input)
             } else {
               input
             }
@@ -157,7 +157,7 @@ def evokeEffects(input: S[Ls]): S[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} 
     case Question1(whPhrase, question) => Question2(whoBoundary{() => whPhrase}{() => question})
     case Question2(question) => input
     case Quantifier(label, arg1, arg2) => (Quantifier(label, evokeEffects(arg1), evokeEffects(arg2)))
-    case Empty() => Empty()
+    case Unknown() => Unknown()
   }
 }
 

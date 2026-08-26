@@ -2,7 +2,7 @@ module src/test
 
 import test
 import src/sentence
-import src/inputOutput
+import src/anaphora
 import src/traceWho
 import src/quantification
 import src/parse
@@ -27,21 +27,21 @@ def main() = {
     test("Pronoun Usage before binding") {
       assert( 
           parse([He(), Loves(), Bob(), Mother()]).show(), 
-          Empty().loves(bob().mother()).show()
+          Unknown().loves(bob().mother()).show()
       )
     }
     test("Input Output over multiple Levels") {
       assert( 
-        ioBoundary[Ls] { {inputOuter} {outputOuter} =>
-          ioBoundary[Ls] { {inputInner} {outputInner} =>
-            outputOuter.output(bob()).says(outputInner.output(alice()).says(inputInner.input().loves(inputOuter.input().mother())))
+        anaphora[Ls] { {getOuter} {setOuter} =>
+          anaphora[Ls] { {getInner} {setInner} =>
+            setOuter.set(bob()).says(setInner.set(alice()).says(getInner.get().loves(getOuter.get().mother())))
           }
         }.show(), 
         bob().says(alice().says(alice().loves(bob().mother()))).show()
       )
     }
     test("Input without Output") {
-      def herMother(): S[Ls] => S[Ls] at {} = inputBoundary {
+      def herMother(): S[Ls] => S[Ls] at {} = getBoundary {
         her().mother()
       }
       assert(herMother()(alice()).show(), alice().mother().show())
@@ -96,25 +96,25 @@ def main() = {
     }
     // --------------- Interactions ---------------
     test("Interaction Trace Boundary, Input Output") {
-      val bobLovesHisMother: S[Ls] = ioBoundary {
+      val bobLovesHisMother: S[Ls] = anaphora {
         traceBoundary {loves(__(), his().mother)} {bind(bob())}
       }
       assert(bobLovesHisMother.show(), bob().loves(bob().mother).show())
-      val herMotherLovesAlice: S[Ls] = ioBoundary {
+      val herMotherLovesAlice: S[Ls] = anaphora {
         traceBoundary {loves(mother(her()), __())} {bind(alice())}
       }
-      assert(herMotherLovesAlice.show(), Empty().mother.loves(alice()).show())
+      assert(herMotherLovesAlice.show(), Unknown().mother.loves(alice()).show())
     }
     test("Interaction Input Output, Quantification") {
-      val everyonesFatherLovesTheirMother: S[Ls] = ioBoundary[Ls] {
+      val everyonesFatherLovesTheirMother: S[Ls] = anaphora[Ls] {
         quantificationBoundary {
-          father(bind(everyone())).loves(mother(do input()))
+          father(bind(everyone())).loves(mother(do get()))
         }
       }
       assert(everyonesFatherLovesTheirMother.show(), forall(identifier("x0"), identifier("x0").father().loves(identifier("x0").mother())).show())
     }
     test("Interaction Input Output, Direct Speach") {
-      val johnLikesHeSaidBobLovesMe = ioBoundary[Ls] {
+      val johnLikesHeSaidBobLovesMe = anaphora[Ls] {
         bind(john()).loves(he().said{bob().loves(me())})
       }
       assert(show(johnLikesHeSaidBobLovesMe), show(john().loves(john().says(bob().loves(john())))))
@@ -127,15 +127,15 @@ def main() = {
     }
     test("Interaction Input Output, Quantification, Questions") {
       def whosePresentforhimDideveryonesFatherSee{answer: () => S[Ls]}: S[Ls] = quantificationBoundary {
-        ioBoundary[Ls] {
+        anaphora[Ls] {
           (whoBoundary {do who().present(he())} {bind(father(everyone())).saw(__())}) {answer()}
         }
       }
       val everyonesFatherSawBobsPresentForHim = show(whosePresentforhimDideveryonesFatherSee{() => bob()})
       val denotationEveryonesFatherSawBobsPresentForHim = show(forall(identifier("x0"), identifier("x0").father().saw(bob().present(identifier("x0").father()))))
       assert(everyonesFatherSawBobsPresentForHim, denotationEveryonesFatherSawBobsPresentForHim)
-      def whoseMotherLovesHisFather{answer: () => S[Ls] / {Quantification[Ls], Output[Ls]}}: S[Ls] = quantificationBoundary {
-        ioBoundary[Ls] {
+      def whoseMotherLovesHisFather{answer: () => S[Ls] / {Quantification[Ls], Set[Ls]}}: S[Ls] = quantificationBoundary {
+        anaphora[Ls] {
           (whoBoundary {do who().mother()} {__().loves(his().father())}) {answer()}
         }
       }

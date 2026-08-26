@@ -58,7 +58,7 @@ def sentenceToString(s: S[Ls]): String = {
     case Quantifier(label, arg1, arg2) => labelToString(label) ++ sentenceToString(arg1) ++ " ." ++ sentenceToString(arg2)
     case Question1(whPhrase, rest) => sentenceToString(whPhrase) ++ sentenceToString(rest)
     case Question2(question) => show(question)
-    case Empty() => " Empty"
+    case Unknown() => " Unknown"
   }
 }
 
@@ -79,6 +79,6 @@ def sentenceToStringParan(s: S[Ls]): String = {
     case Quantifier(label, arg1, arg2) => labelToString(label) ++ sentenceToStringParan(arg1) ++ " ." ++ "(" ++ sentenceToStringParan(arg2) ++ ")"
     case Question1(whPhrase, rest) => sentenceToStringParan(whPhrase) ++ sentenceToStringParan(rest)
     case Question2(question) => show(question)
-    case Empty() => " Empty"
+    case Unknown() => " Unknown"
   }
 }
