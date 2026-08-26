@@ -5,15 +5,15 @@ import src/inputOutput
 
 
 interface Trace {
-  def trace(): Sentence[Ls]
+  def trace(): S[Ls]
 }
 
 interface Who {
-  def who(): Sentence[Ls]
+  def who(): S[Ls]
 }
 
 
-def traceBoundary{traceSentence: () => Sentence[Ls] / Trace}: {() => Sentence[Ls]} => Sentence[Ls] at {traceSentence} = box { {s} =>
+def traceBoundary{traceSentence: () => S[Ls] / Trace}: {() => S[Ls]} => S[Ls] at {traceSentence} = box { {s} =>
   try {
     traceSentence()
   } with Trace {
@@ -23,7 +23,7 @@ def traceBoundary{traceSentence: () => Sentence[Ls] / Trace}: {() => Sentence[Ls
   }
 }
 
-def whoBoundary{whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace}: {() => Sentence[Ls]} => Sentence[Ls] at {whoSentence, traceSentence} = box { {answer} =>
+def whoBoundary{whoSentence: () => S[Ls] / Who} {traceSentence: () => S[Ls] / Trace}: {() => S[Ls]} => S[Ls] at {whoSentence, traceSentence} = box { {answer} =>
   try {
     (traceBoundary{traceSentence}){whoSentence()}
   } with Who {
@@ -34,57 +34,57 @@ def whoBoundary{whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sen
 }
 
 // Overload
-def traceBoundary() {traceSentence: () => Sentence[Ls] / Trace} {answer: () => Sentence[Ls]}: Sentence[Ls] = {
+def traceBoundary() {traceSentence: () => S[Ls] / Trace} {answer: () => S[Ls]}: S[Ls] = {
   (traceBoundary{traceSentence}){answer}
 }
 
-def whoBoundary{whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace} {answer: () => Sentence[Ls]}: Sentence[Ls] = {
+def whoBoundary{whoSentence: () => S[Ls] / Who} {traceSentence: () => S[Ls] / Trace} {answer: () => S[Ls]}: S[Ls] = {
   (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
-def whoBoundary {answer: () => Sentence[Ls]} {whoSentence: () => Sentence[Ls] / Who} {traceSentence: () => Sentence[Ls] / Trace}: Sentence[Ls] = {
+def whoBoundary {answer: () => S[Ls]} {whoSentence: () => S[Ls] / Who} {traceSentence: () => S[Ls] / Trace}: S[Ls] = {
   (whoBoundary{whoSentence} {traceSentence}){answer}
 }
 
 
 
 // For fronted Who[L]
-def who(): Sentence[Ls] / {Who} = do who()
-def __(): Sentence[Ls] / {Trace} = do trace()
-def whose(): Sentence[Ls] / {Who} = who() 
+def who(): S[Ls] / {Who} = do who()
+def __(): S[Ls] / {Trace} = do trace()
+def whose(): S[Ls] / {Who} = who() 
 
 // For In-Situ Who[L]
-def who(): Sentence[Ls] / {Trace} = do trace()
+def who(): S[Ls] / {Trace} = do trace()
 
 
 // ---- Examples that Work ----
 
 
 // Could bind to who[L] or Father
-def whoseFatherDidAliceSaySawHisMother(): Sentence[Ls] = ioBoundary {
+def whoseFatherDidAliceSaySawHisMother(): S[Ls] = ioBoundary {
   whoBoundary {bind(father(who()))} {__().saw(his().mother())} {bob()}
 }
 
 // Correctly doesn't connect who[L] with his
-def whoDidHisMotherSee(): Sentence[Ls] = ioBoundary { 
+def whoDidHisMotherSee(): S[Ls] = ioBoundary { 
   whoBoundary {bind(who())} {his().mother().saw( __())} {bob()}
 }
 
 // Could be better with Multiple Levels
-def whoSawWho(): Sentence[Ls] = whoBoundary {who()} {__().saw(who())} {bob()}
+def whoSawWho(): S[Ls] = whoBoundary {who()} {__().saw(who())} {bob()}
 
 // To use IO in incomplete Sentences, boxing is necessary
-def whoLoveshisMother(): {() => Sentence[Ls]} => Sentence[Ls] / {IO[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
-def bobLovesHisMother(): Sentence[Ls] = ioBoundary { (whoLoveshisMother()){() => bind(bob())}}
+def whoLoveshisMother(): {() => S[Ls]} => S[Ls] / {IO[Ls]} at {} = box { {arg} => whoBoundary{who()} {loves(__(), his().mother)} {arg} }
+def bobLovesHisMother(): S[Ls] = ioBoundary { (whoLoveshisMother()){() => bind(bob())}}
 
 
 // ---- Examples that don't work ----
 
 // Since In-Situ-Who[L] and Trace[L] are implemented the same, Superiority doesn't work correctly
-def whoDidWhoSee__(): Sentence[Ls] = whoBoundary {who()} {who().saw(__())} {bob()}
+def whoDidWhoSee__(): S[Ls] = whoBoundary {who()} {who().saw(__())} {bob()}
 
 // Doesn't work, because who[L] can't select out of a set of people, interesting because john can bind he
-def whichOfJohnsFriendsdoesHeLike__(): Sentence[Ls] = <>
+def whichOfJohnsFriendsdoesHeLike__(): S[Ls] = <>
 
 
 

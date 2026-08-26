@@ -3,18 +3,18 @@ module sentence
 
 // Delete Prop0 and Term0
 // Rework Questions to work with immediate answer
-type Sentence[L] {
-  Prop3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
-  Prop2(label: L, argument1: Sentence[L], argument2: Sentence[L])
-  Prop1(label: L, argument1: Sentence[L])
+type S[L] {
+  Prop3(label: L, argument1: S[L], argument2: S[L], argument3: S[L])
+  Prop2(label: L, argument1: S[L], argument2: S[L])
+  Prop1(label: L, argument1: S[L])
   Prop0(label: L)
-  Term3(label: L, argument1: Sentence[L], argument2: Sentence[L], argument3: Sentence[L])
-  Term2(label: L, argument1: Sentence[L], argument2: Sentence[L])
-  Term1(label: L, argument1: Sentence[L])
+  Term3(label: L, argument1: S[L], argument2: S[L], argument3: S[L])
+  Term2(label: L, argument1: S[L], argument2: S[L])
+  Term1(label: L, argument1: S[L])
   Term0(label: L)
-  Quantifier(label: L, argument1: Sentence[L], argument2: Sentence[L])
-  Question1(whPhrase: Sentence[L], question: Sentence[L])
-  Question2(question: {() => Sentence[L]} => Sentence[L] at {})
+  Quantifier(label: L, argument1: S[L], argument2: S[L])
+  Question1(whPhrase: S[L], question: S[L])
+  Question2(question: {() => S[L]} => S[L] at {})
   Empty()
 }
 
@@ -61,47 +61,47 @@ type Ls {
 }
 
 
-def loves(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def loves(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Loves(), arg1, arg2)
 }
 
-def says(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def says(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Says(), arg1, arg2)
 }
 
-def saw(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def saw(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Saw(), arg1, arg2)
 }
 
-def respects(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def respects(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Saw(), arg1, arg2)
 }
 
-def implies(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def implies(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Implies(), arg1, arg2)
 }
 
-def andP(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def andP(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(And(), arg1, arg2)
 }
 
-def inLoveWith(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def inLoveWith(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(InLoveWith(), arg1, arg2)
 }
 
-def likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def likes(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Likes(), arg1, arg2)
 }
 
-def is_(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def is_(arg1: S[Ls], arg2: S[Ls]) = {
   Prop2(Is(), arg1, arg2)
 }
 
-def true_(): Sentence[Ls] = {
+def true_(): S[Ls] = {
   Prop0(True())
 }
 
-def false_(): Sentence[Ls] = {
+def false_(): S[Ls] = {
   Prop0(False())
 }
 
@@ -113,55 +113,55 @@ def woman() = {
   Term0(Woman())
 }
 
-def father(arg1: Sentence[Ls]) = {
+def father(arg1: S[Ls]) = {
   Term1(Father(), arg1)
 }
 
-def mother(arg1: Sentence[Ls]) = {
+def mother(arg1: S[Ls]) = {
   Term1(Mother(), arg1)
 }
 
-def opinionOf(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+def opinionOf(arg1: S[Ls], arg2: S[Ls]) = {
   Term2(OpinionOf(), arg1, arg2)
 }
 
-def person(name: String): Sentence[Ls] = {
+def person(name: String): S[Ls] = {
   Term0(Person())
 }
 
-def john(): Sentence[Ls] = {
+def john(): S[Ls] = {
   Term0(John())
 }
 
-def bob(): Sentence[Ls] = {
+def bob(): S[Ls] = {
   Term0(Bob())
 }
 
-def alice(): Sentence[Ls] = {
+def alice(): S[Ls] = {
   Term0(Alice())
 }
 
-def nothing(): Sentence[Ls] = {
+def nothing(): S[Ls] = {
   Term0(Nothing())
 }
 
-def identifier(string: String): Sentence[Ls] = {
+def identifier(string: String): S[Ls] = {
   Term0(Identifier(string))
 }
 
-def andT(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+def andT(arg1: S[Ls], arg2: S[Ls]): S[Ls] = {
   Term2(And(), arg1, arg2)
 }
 
-def forall(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+def forall(arg1: S[Ls], arg2: S[Ls]): S[Ls] = {
   Quantifier(ForAll(), arg1, arg2)
 }
 
-def exists(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+def exists(arg1: S[Ls], arg2: S[Ls]): S[Ls] = {
   Quantifier(Exists(), arg1, arg2)
 }
 
-def present(arg1: Sentence[Ls], arg2: Sentence[Ls]): Sentence[Ls] = {
+def present(arg1: S[Ls], arg2: S[Ls]): S[Ls] = {
   Term2(Present(), arg1, arg2)
 }
 

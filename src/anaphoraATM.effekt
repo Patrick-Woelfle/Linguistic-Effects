@@ -4,8 +4,8 @@ module playground
 import src/sentence
 
 type Mixed {
-  unbound(s: Sentence[Ls])
-  bound(s: Sentence[Ls])
+  unbound(s: S[Ls])
+  bound(s: S[Ls])
 }
 
 interface Anaphora[L] {

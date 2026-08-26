@@ -4,16 +4,16 @@ import src/sentence
 
 
 interface Input[L] {
-  def input(): Sentence[L]
+  def input(): S[L]
 }
 
 interface Output[L]{
-  def output(a: Sentence[L]): Sentence[L]
+  def output(a: S[L]): S[L]
 }
   
 effect IO[L] = {Input[L], Output[L]} 
 
-def inputBoundary[L]{body: () => Sentence[L] / {Input[L]}}: Sentence[L] => Sentence[L] at {body} = box { a =>
+def inputBoundary[L]{body: () => S[L] / {Input[L]}}: S[L] => S[L] at {body} = box { a =>
   try {
       body()
   } with Input[L] {
@@ -21,7 +21,7 @@ def inputBoundary[L]{body: () => Sentence[L] / {Input[L]}}: Sentence[L] => Sente
   }
 }
 
-def ioBoundary[L]{body: {Input[L]} {Output[L]} => Sentence[L] / {Input[L], Output[L]}}: Sentence[L] = {
+def ioBoundary[L]{body: {Input[L]} {Output[L]} => S[L] / {Input[L], Output[L]}}: S[L] = {
   var cache = Empty()
   try {
     body{capInput} {capOutput}
@@ -37,18 +37,18 @@ def ioBoundary[L]{body: {Input[L]} {Output[L]} => Sentence[L] / {Input[L], Outpu
   }
 }
 
-def ioBoundary[L]() { body: => Sentence[L] / {Input[L], Output[L]}}: Sentence[L] = {
+def ioBoundary[L]() { body: => S[L] / {Input[L], Output[L]}}: S[L] = {
   ioBoundary[L]{ {_} {_} => body()}
 }
 
 
 // Helper Definitions
-def he(): Sentence[Ls] / {Input[Ls]} = do input()
+def he(): S[Ls] / {Input[Ls]} = do input()
 def she() = he()
 def him() = he()
 def her() = he()
 def his() = he()
-def bind(s: Sentence[Ls]): Sentence[Ls] / {Output[Ls]} = do output(s)
+def bind(s: S[Ls]): S[Ls] / {Output[Ls]} = do output(s)
 
 
 

@@ -13,35 +13,35 @@ interface Flip {
 }
 
 interface Split {
-  def split(first: Sentence[Ls], tail: List[Ls]): Sentence[Ls]
+  def split(first: S[Ls], tail: List[Ls]): S[Ls]
 }
 
 effect ParseEffekts = {Split} 
 
-def parseAllOptions(input: List[Ls]): List[Sentence[Ls]] = {
+def parseAllOptions(input: List[Ls]): List[S[Ls]] = {
   val allDenotations = evokeEffectsEntry(labelToSentenceEntry(input), true)
   val denotationsWithoutDuplicates = allDenotations.filterDuplicates()
   denotationsWithoutDuplicates.filter{sentenceDoesntContainEmpty}
 }
 
-def parse(input: List[Ls]): Sentence[Ls] = {
+def parse(input: List[Ls]): S[Ls] = {
   headOption(evokeEffectsEntry(labelToSentenceEntry(input), false)) match {
     case Some(a) => a
     case None() => Empty()
   }
 }
 
-def labelToSentenceEntry(input: List[Ls]): Sentence[Ls] = {
+def labelToSentenceEntry(input: List[Ls]): S[Ls] = {
  try {
     labelToSentence(input, Empty())
   } with Split { // Used, when two Term0s appear after another
-    def split(arg: Sentence[Ls], tail: List[Ls]) = {
+    def split(arg: S[Ls], tail: List[Ls]) = {
       Prop2(And(), resume(arg), labelToSentenceEntry(tail))
     }
   }
 }
 
-def evokeEffectsEntry(input: Sentence[Ls], allOptions: Bool): List[Sentence[Ls]] = {
+def evokeEffectsEntry(input: S[Ls], allOptions: Bool): List[S[Ls]] = {
   try {
     [ioBoundary[Ls] {
       quantificationBoundary{
@@ -63,7 +63,7 @@ def evokeEffectsEntry(input: Sentence[Ls], allOptions: Bool): List[Sentence[Ls]]
 }
 
 
-def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} ={
+def labelToSentence(input: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} ={
   input match {
     case Cons(front, tail) => front match {
       case Loves() => loves(arg, labelToSentence(tail, Empty()))
@@ -84,7 +84,7 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
       case Who() => try { 
         labelToSentence(tail, Term0(Who()))
       } with Split {
-        def split(whPhrase: Sentence[Ls], tail: List[Ls]) = {
+        def split(whPhrase: S[Ls], tail: List[Ls]) = {
           Question1(whPhrase, labelToSentence(tail, Empty()))
         }
       }
@@ -94,21 +94,21 @@ def labelToSentence(input: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEf
   }
 }
 
-def parseTerm0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} = {
+def parseTerm0(front: Ls, tail: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} = {
   arg match {
     case Empty() => labelToSentence(tail, Term0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
 
-def parseProp0(front: Ls, tail: List[Ls], arg: Sentence[Ls]): Sentence[Ls] / {ParseEffekts} = {
+def parseProp0(front: Ls, tail: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} = {
   arg match {
     case Empty() => labelToSentence(tail, Prop0(front))
     case _ => do split(arg, Cons(front, tail))
   }
 }
 
-def evokeEffects(input: Sentence[Ls]): Sentence[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} = {
+def evokeEffects(input: S[Ls]): S[Ls] / {IO[Ls], Quantification[Ls], Who, Flip} = {
   input match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, evokeEffects(arg1), evokeEffects(arg2))

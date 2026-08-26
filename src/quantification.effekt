@@ -7,26 +7,26 @@ import src/traceWho
 
 interface Quantification[L] {
   // Corresponds to every/a ___
-  def every(s: Sentence[Ls]): Sentence[Ls]
-  def a(s: Sentence[Ls]): Sentence[Ls]
+  def every(s: S[Ls]): S[Ls]
+  def a(s: S[Ls]): S[Ls]
   // Corresponds to everyone/someone
-  def everyone(): Sentence[L]
-  def someone(): Sentence[L]
+  def everyone(): S[L]
+  def someone(): S[L]
 }
 
-def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => Sentence[Ls] / Quantification[Ls]}: Sentence[Ls] = {
+def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
   var counter = 0
-  def fresh(): Sentence[Ls] = { val x = identifier(personLabel ++ show(counter)); counter = counter + 1; x }
+  def fresh(): S[Ls] = { val x = identifier(personLabel ++ show(counter)); counter = counter + 1; x }
   try { body{cap} } with cap: Quantification[Ls] {
     def everyone() = {
       val x = fresh()
       forall(x, resume(x))
     }
-    def every(s: Sentence[Ls]) = {
+    def every(s: S[Ls]) = {
       val x = fresh()
       forall(x, implies(is_(x, s), resume(x)))
     }
-    def a(s: Sentence[Ls]) = {
+    def a(s: S[Ls]) = {
       val x = fresh()
       exists(x, andP(is_(x, s), resume(x)))
     }
@@ -38,22 +38,22 @@ def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => 
 }
 
 // Overload for multible levels
-def quantificationBoundary { body: => Sentence[Ls] / Quantification[Ls]}: Sentence[Ls] = {
+def quantificationBoundary { body: => S[Ls] / Quantification[Ls]}: S[Ls] = {
   quantificationBoundary{ {_} => body()}
 }
 
-def quantificationBoundary { body: {Quantification[Ls]} => Sentence[Ls] / Quantification[Ls]}: Sentence[Ls] = {
+def quantificationBoundary { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
   quantificationBoundary("x"){body}
 }
 
 
 // Helper Definitions
-def everyone(): Sentence[Ls] / {Quantification[Ls]} = do everyone()
-def someone(): Sentence[Ls] / {Quantification[Ls]} = do someone()
-def a(s: Sentence[Ls]): Sentence[Ls] / {Quantification[Ls]} = do a(s)
-def every(s: Sentence[Ls]): Sentence[Ls] / {Quantification[Ls]} = do every(s)
+def everyone(): S[Ls] / {Quantification[Ls]} = do everyone()
+def someone(): S[Ls] / {Quantification[Ls]} = do someone()
+def a(s: S[Ls]): S[Ls] / {Quantification[Ls]} = do a(s)
+def every(s: S[Ls]): S[Ls] / {Quantification[Ls]} = do every(s)
 
-val aStudentLikesEveryBook: Sentence[Ls] = 
+val aStudentLikesEveryBook: S[Ls] = 
   quantificationBoundary {
     a(woman()).likes(every(man()))
 } 

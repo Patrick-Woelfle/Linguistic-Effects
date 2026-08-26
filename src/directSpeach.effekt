@@ -3,10 +3,10 @@ module speaker
 import src/sentence
 
 interface Speaker[L] {
-  def speaker(): Sentence[L]
+  def speaker(): S[L]
 }
 
-def said(speaker: Sentence[Ls]){spoken: {Speaker[Ls]} => Sentence[Ls] / {Speaker[Ls]}}: Sentence[Ls] = {
+def said(speaker: S[Ls]){spoken: {Speaker[Ls]} => S[Ls] / {Speaker[Ls]}}: S[Ls] = {
   try {
     speaker.says(spoken{capSpeaker})
   } with capSpeaker: Speaker[Ls] {
@@ -16,7 +16,7 @@ def said(speaker: Sentence[Ls]){spoken: {Speaker[Ls]} => Sentence[Ls] / {Speaker
   }
 }
 
-def said(speaker: Sentence[Ls]){spoken: () => Sentence[Ls] / {Speaker[Ls]}}: Sentence[Ls] = {
+def said(speaker: S[Ls]){spoken: () => S[Ls] / {Speaker[Ls]}}: S[Ls] = {
   said(speaker){ {_} => spoken()}
 }
 

@@ -10,14 +10,14 @@ import io
 
 
 interface EvaluateEffects {
-  def lookupTerm(s: Sentence[Ls]): Sentence[Ls]
-  def lookupProp(s: Sentence[Ls]): Sentence[Ls]
-  def getTerms(): List[Sentence[Ls]]
-  def removeFromTerms(s: Sentence[Ls]): Unit
+  def lookupTerm(s: S[Ls]): S[Ls]
+  def lookupProp(s: S[Ls]): S[Ls]
+  def getTerms(): List[S[Ls]]
+  def removeFromTerms(s: S[Ls]): Unit
 }
 
 
-def gatherTerms(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
+def gatherTerms(s: S[Ls]): S[Ls] / {EvaluateEffects} = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, gatherTerms(arg1), gatherTerms(arg2), gatherTerms(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, gatherTerms(arg1), gatherTerms(arg2))
@@ -38,7 +38,7 @@ def gatherTerms(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
   }
 }
 
-def removeQuantifiers(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
+def removeQuantifiers(s: S[Ls]): S[Ls] / {EvaluateEffects} = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, removeQuantifiers(arg1), removeQuantifiers(arg2), removeQuantifiers(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, removeQuantifiers(arg1), removeQuantifiers(arg2))
@@ -52,13 +52,13 @@ def removeQuantifiers(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
       case Exists() => {
         val evaluatedArg2 = removeQuantifiers(arg2)
         var terms = do getTerms()
-        var allWorlds: List[Sentence[Ls]] = terms.map {x => evaluatedArg2.replace(arg1, x)}
+        var allWorlds: List[S[Ls]] = terms.map {x => evaluatedArg2.replace(arg1, x)}
         allWorlds.foldLeft(Prop0(False())){(x, y) => Prop2(Or(), x, y)}
       }
       case ForAll() => {
         val evaluatedArg2 = removeQuantifiers(arg2)
         var terms = do getTerms()
-        var allWorlds: List[Sentence[Ls]] = terms.map {x => evaluatedArg2.replace(arg1, x)}
+        var allWorlds: List[S[Ls]] = terms.map {x => evaluatedArg2.replace(arg1, x)}
         allWorlds.foldLeft(Prop0(True())){(x, y) => Prop2(And(), x, y)}
       }
       case a => println("found an unexpected Label for a Quantifier: " ++ show(a)); Empty() 
@@ -70,7 +70,7 @@ def removeQuantifiers(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
 }
 
 
-def replace(sentence: Sentence[Ls], replaced: Sentence[Ls], replacee: Sentence[Ls]): Sentence[Ls] = {
+def replace(sentence: S[Ls], replaced: S[Ls], replacee: S[Ls]): S[Ls] = {
   var stringofSentence = show(sentence)
   var stringOfReplaced = show(replaced)
   sentence match {
@@ -104,7 +104,7 @@ def replace(sentence: Sentence[Ls], replaced: Sentence[Ls], replacee: Sentence[L
 } 
 
 
-def evaluateHelper(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
+def evaluateHelper(s: S[Ls]): S[Ls] / {EvaluateEffects} = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => do lookupProp(Prop3(label, arg1, arg2, arg3))
     case Prop2(label, arg1, arg2) => label match {
@@ -126,7 +126,7 @@ def evaluateHelper(s: Sentence[Ls]): Sentence[Ls] / {EvaluateEffects} = {
 }
 
 
-def sentenceAnd(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
+def sentenceAnd(x: S[Ls], y: S[Ls]): S[Ls] = {
   x match {
     case Prop0(labelX) => {
       y match {
@@ -151,7 +151,7 @@ def sentenceAnd(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
 }
 
 
-def sentenceOr(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
+def sentenceOr(x: S[Ls], y: S[Ls]): S[Ls] = {
   x match {
     case Prop0(labelX) => {
       y match {
@@ -175,23 +175,23 @@ def sentenceOr(x: Sentence[Ls], y: Sentence[Ls]): Sentence[Ls] = {
   }
 }
 
-def evaluate(s: Sentence[Ls]): Bool = {
-  var terms: List[Sentence[Ls]] = Nil()
-  var propositions = emptyGeneric[Sentence[Ls], Sentence[Ls]]
+def evaluate(s: S[Ls]): Bool = {
+  var terms: List[S[Ls]] = Nil()
+  var propositions = emptyGeneric[S[Ls], S[Ls]]
   try {
-    // println("Original Sentence: \"" ++ sentenceToString(input) ++ "\"")
-    // println("Evaluation of Sentence: \"" ++ sentenceToString(evaluationSentence) ++ "\"")
+    // println("Original S: \"" ++ sentenceToString(input) ++ "\"")
+    // println("Evaluation of S: \"" ++ sentenceToString(evaluationSentence) ++ "\"")
     var sentenceWithoutQuantifiers = removeQuantifiers(gatherTerms(s))
     println("All terms: " ++ show(terms))
-    println("Sentence without quantifiers: \"" ++ sentenceToStringParan(sentenceWithoutQuantifiers) ++ "\"")
+    println("S without quantifiers: \"" ++ sentenceToStringParan(sentenceWithoutQuantifiers) ++ "\"")
     var evaluationSentence = evaluateHelper(sentenceWithoutQuantifiers)
     evaluationSentence match {
       case Prop0(True()) => true
       case Prop0(False()) => false
-      case other => println("Sentence can't be reduced to true or false: " ++ show(other)); false
+      case other => println("S can't be reduced to true or false: " ++ show(other)); false
     }
   } with EvaluateEffects {
-    def lookupTerm(s: Sentence[Ls]) = {
+    def lookupTerm(s: S[Ls]) = {
       if (terms.contains(s) {(x, y) => show(x) == show(y)}) {
         resume(s)
       }
@@ -200,7 +200,7 @@ def evaluate(s: Sentence[Ls]): Bool = {
         resume(s)
       }
     }
-    def lookupProp(s: Sentence[Ls]) = {
+    def lookupProp(s: S[Ls]) = {
       val result = getOrElse(propositions, s) { () =>
       console {
           do writeLine("No entry for \"" ++ sentenceToString(s) ++ "\" found, is it true or false?")
@@ -216,7 +216,7 @@ def evaluate(s: Sentence[Ls]): Bool = {
     def getTerms() = {
       resume(terms)
     }
-    def removeFromTerms(s: Sentence[Ls]) = {
+    def removeFromTerms(s: S[Ls]) = {
       terms.indexOf(s) {(x, y) => show(x) == show(y)} match {
         case Some(i) => terms = terms.deleteAt(i); resume(())
         case None() => resume(())

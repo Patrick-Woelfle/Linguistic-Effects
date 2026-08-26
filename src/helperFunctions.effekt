@@ -18,7 +18,7 @@ def contains(s: String, substring: String): Bool = {
   }
 }
 
-def removeRedundantTerms(s: Sentence[Ls]): Sentence[Ls] = {
+def removeRedundantTerms(s: S[Ls]): S[Ls] = {
   s match {
     case Prop2(And(), Prop0(True()), rest) => println("a"); removeRedundantTerms(rest)
     case Prop2(Or(), Prop0(False()), rest) => println("b"); removeRedundantTerms(rest)
@@ -26,7 +26,7 @@ def removeRedundantTerms(s: Sentence[Ls]): Sentence[Ls] = {
   }
 }
 
-def callRecursiveFunction[A](s: Sentence[A]) {f: Sentence[A] => Sentence[A]}: Sentence[A] = {
+def callRecursiveFunction[A](s: S[A]) {f: S[A] => S[A]}: S[A] = {
   s match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, f(arg1), f(arg2), f(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, f(arg1), f(arg2))
@@ -59,8 +59,8 @@ def containsSubstring(s: String, substring: String): Bool = {
   }
 }
 
-def filterDuplicates(sentences: List[Sentence[Ls]]): List[Sentence[Ls]] = {
-  def filter(remaining: List[Sentence[Ls]], filtered: List[Sentence[Ls]]): List[Sentence[Ls]] =
+def filterDuplicates(sentences: List[S[Ls]]): List[S[Ls]] = {
+  def filter(remaining: List[S[Ls]], filtered: List[S[Ls]]): List[S[Ls]] =
     remaining match {
       case Nil() => filtered
       case Cons(head, tail) => {
@@ -73,7 +73,7 @@ def filterDuplicates(sentences: List[Sentence[Ls]]): List[Sentence[Ls]] = {
   filter(sentences, Nil())
 }
 
-def sentenceDoesntContainEmpty(sentence: Sentence[Ls]): Bool = {
+def sentenceDoesntContainEmpty(sentence: S[Ls]): Bool = {
     sentence match {
     case Empty() => false
     case Prop3(label, arg1, arg2, arg3) => sentenceDoesntContainEmpty(arg1) && sentenceDoesntContainEmpty(arg2) && sentenceDoesntContainEmpty(arg3)
