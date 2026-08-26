@@ -1,7 +1,7 @@
 module quantification
 
 import src/sentence
-import src/traceWho
+import src/questions
 
 
 interface Quantification[L] {
@@ -13,7 +13,7 @@ interface Quantification[L] {
   def someone(): S[L]
 }
 
-def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
+def quantification(personLabel: String) { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
   var counter = 0
   def fresh(): S[Ls] = { val x = identifier(personLabel ++ show(counter)); counter = counter + 1; x }
   try { body{cap} } with cap: Quantification[Ls] {
@@ -37,12 +37,12 @@ def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => 
 }
 
 // Overload for multible levels
-def quantificationBoundary { body: => S[Ls] / Quantification[Ls]}: S[Ls] = {
-  quantificationBoundary{ {_} => body()}
+def quantification { body: => S[Ls] / Quantification[Ls]}: S[Ls] = {
+  quantification{ {_} => body()}
 }
 
-def quantificationBoundary { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
-  quantificationBoundary("x"){body}
+def quantification { body: {Quantification[Ls]} => S[Ls] / Quantification[Ls]}: S[Ls] = {
+  quantification("x"){body}
 }
 
 
@@ -53,7 +53,7 @@ def a(s: S[Ls]): S[Ls] / {Quantification[Ls]} = do a(s)
 def every(s: S[Ls]): S[Ls] / {Quantification[Ls]} = do every(s)
 
 val aStudentLikesEveryBook: S[Ls] = 
-  quantificationBoundary {
+  quantification {
     a(woman()).likes(every(man()))
 } 
 

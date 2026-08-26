@@ -3,7 +3,7 @@ module parse
 import src/sentence
 import src/anaphora
 import src/quantification
-import src/traceWho
+import src/questions
 import src/prettyPrinter
 import src/helperFunctions
 
@@ -44,11 +44,11 @@ def labelToSentenceEntry(input: List[Ls]): S[Ls] = {
 def evokeEffectsEntry(input: S[Ls], allOptions: Bool): List[S[Ls]] = {
   try {
     [anaphora[Ls] {
-      quantificationBoundary{
+      quantification{
         evokeEffects(input)
       }
     }]
-  } with Who {
+  } with Question {
     def who() = {
       println("Parsing failed, unexpected who found")
       [Unknown()]
@@ -108,7 +108,7 @@ def parseProp0(front: Ls, tail: List[Ls], arg: S[Ls]): S[Ls] / {ParseEffekts} = 
   }
 }
 
-def evokeEffects(input: S[Ls]): S[Ls] / {Anaphora[Ls], Quantification[Ls], Who, Flip} = {
+def evokeEffects(input: S[Ls]): S[Ls] / {Anaphora[Ls], Quantification[Ls], Question, Flip} = {
   input match {
     case Prop3(label, arg1, arg2, arg3) => Prop3(label, evokeEffects(arg1), evokeEffects(arg2), evokeEffects(arg3))
     case Prop2(label, arg1, arg2) => Prop2(label, evokeEffects(arg1), evokeEffects(arg2))
@@ -154,7 +154,7 @@ def evokeEffects(input: S[Ls]): S[Ls] / {Anaphora[Ls], Quantification[Ls], Who, 
               input
             }
         }
-    case Question1(whPhrase, question) => Question2(whoBoundary{() => whPhrase}{() => question})
+    case Question1(whPhrase, question) => Unknown()
     case Question2(question) => input
     case Quantifier(label, arg1, arg2) => (Quantifier(label, evokeEffects(arg1), evokeEffects(arg2)))
     case Unknown() => Unknown()

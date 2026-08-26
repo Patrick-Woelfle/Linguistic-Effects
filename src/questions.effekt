@@ -1,0 +1,93 @@
+module traceWho
+
+import src/sentence
+import src/anaphora
+
+
+interface Trace {
+  def __(): S[Ls]
+}
+
+interface Question {
+  def who(): S[Ls]
+}
+
+
+def trace{traceSentence: () => S[Ls] / Trace}: {() => S[Ls]} => S[Ls] at {traceSentence} = box { {s} =>
+  try {
+    traceSentence()
+  } with Trace {
+    def __() = { 
+      resume(s())
+    }
+  }
+}
+
+def question{whoSentence: () => S[Ls] / Question} {traceSentence: () => S[Ls] / Trace}: {() => S[Ls]} => S[Ls] at {whoSentence, traceSentence} = box { {answer} =>
+  try {
+    (trace{traceSentence}){whoSentence()}
+  } with Question {
+    def who() = {
+      resume(answer())
+    }
+  }
+}
+
+// Overload
+def trace() {traceSentence: () => S[Ls] / Trace} {answer: () => S[Ls]}: S[Ls] = {
+  (trace{traceSentence}){answer}
+}
+
+def question{whoSentence: () => S[Ls] / Question} {traceSentence: () => S[Ls] / Trace} {answer: () => S[Ls]}: S[Ls] = {
+  (question{whoSentence} {traceSentence}){answer}
+}
+
+def question{answer: () => S[Ls]} {whoSentence: () => S[Ls] / Question} {traceSentence: () => S[Ls] / Trace}: S[Ls] = {
+  (question{whoSentence} {traceSentence}){answer}
+}
+
+
+
+// For fronted Question[L]
+def who(): S[Ls] / {Question} = do who()
+def __(): S[Ls] / {Trace} = do __()
+def whose(): S[Ls] / {Question} = who() 
+
+// For In-Situ Question[L]
+def who(): S[Ls] / {Trace} = do __()
+
+
+// ---- Examples that Work ----
+
+
+// Could bind to who[L] or Father
+def whoseFatherDidAliceSaySawHisMother(): S[Ls] = anaphora {
+  question {bind(father(who()))} {__().saw(his().mother())} {bob()}
+}
+
+// Correctly doesn't connect who[L] with his
+def whoDidHisMotherSee(): S[Ls] = anaphora { 
+  question {bind(who())} {his().mother().saw( __())} {bob()}
+}
+
+// Could be better with Multiple Levels
+def whoSawWho(): S[Ls] = question {who()} {__().saw(who())} {bob()}
+
+// To use IO in incomplete Sentences, boxing is necessary
+def whoLoveshisMother(): {() => S[Ls]} => S[Ls] / {Anaphora[Ls]} at {} = box { {arg} => question{who()} {loves(__(), his().mother)} {arg} }
+def bobLovesHisMother(): S[Ls] = anaphora { (whoLoveshisMother()){() => bind(bob())}}
+
+
+// ---- Examples that don't work ----
+
+// Since In-Situ-Question[L] and Trace[L] are implemented the same, Superiority doesn't work correctly
+def whoDidWhoSee__(): S[Ls] = question {who()} {who().saw(__())} {bob()}
+
+// Doesn't work, because who[L] can't select out of a set of people, interesting because john can bind he
+def whichOfJohnsFriendsdoesHeLike__(): S[Ls] = <>
+
+
+
+def main() = {
+  println("a")
+}
