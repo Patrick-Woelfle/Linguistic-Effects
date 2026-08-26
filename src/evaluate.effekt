@@ -7,15 +7,14 @@ import src/prettyPrinter
 import map
 import io/console
 import io
+import src/helperFunctions
 
 
 interface EvaluateEffects {
   def lookupTerm(s: S[Ls]): S[Ls]
-  def lookupProp(s: S[Ls]): S[Ls]
   def getTerms(): List[S[Ls]]
   def removeFromTerms(s: S[Ls]): Unit
 }
-
 
 def gatherTerms(s: S[Ls]): S[Ls] / {EvaluateEffects} = {
   s match {
@@ -74,10 +73,6 @@ def replace(sentence: S[Ls], replaced: S[Ls], replacee: S[Ls]): S[Ls] = {
   var stringofSentence = show(sentence)
   var stringOfReplaced = show(replaced)
   sentence match {
-    case Prop3(label, arg1, arg2, arg3) => Prop3(label, replace(arg1, replaced, replacee), replace(arg2, replaced, replacee), replace(arg3, replaced, replacee))
-    case Prop2(label, arg1, arg2) => Prop2(label, replace(arg1, replaced, replacee), replace(arg2, replaced, replacee))
-    case Prop1(label, arg1) => Prop1(label, replace(arg1, replaced, replacee))
-    case Prop0(label) => Prop0(label)
     case Term3(label, arg1, arg2, arg3) => {
       if (stringofSentence == stringOfReplaced) replacee
       else Term3(label, replace(arg1, replaced, replacee), replace(arg2, replaced, replacee), replace(arg3, replaced, replacee))
@@ -96,100 +91,18 @@ def replace(sentence: S[Ls], replaced: S[Ls], replacee: S[Ls]): S[Ls] = {
       }
       else Term0(label)
     }
-    case Quantifier(label, arg1, arg2) => Quantifier(label, replace(arg1, replaced, replacee), replace(arg2, replaced, replacee))
-    case Question1(whPhrase, question) => Question1(whPhrase, replace(question, replaced, replacee))
-    case Question2(question) => Question2(question)
-    case Empty() => Empty()
+    case other => callRecursiveFunction(sentence) {x => replace(x, replaced, replacee)}
   }
 } 
 
 
-def evaluateHelper(s: S[Ls]): S[Ls] / {EvaluateEffects} = {
-  s match {
-    case Prop3(label, arg1, arg2, arg3) => do lookupProp(Prop3(label, arg1, arg2, arg3))
-    case Prop2(label, arg1, arg2) => label match {
-      case And() => sentenceAnd(evaluateHelper(arg1), evaluateHelper(arg2))
-      case Or() => sentenceOr(evaluateHelper(arg1), evaluateHelper(arg2))
-      case other => do lookupProp(Prop2(label, arg1, arg2))
-    }
-    case Prop1(label, arg1) => do lookupProp(Prop1(label, arg1))
-    case Prop0(label) => Prop0(label)
-    case Term3(label, arg1, arg2, arg3) => Term3(label, evaluateHelper(arg1), evaluateHelper(arg2), evaluateHelper(arg3))
-    case Term2(label, arg1, arg2) => Term2(label, evaluateHelper(arg1), evaluateHelper(arg2))
-    case Term1(label, arg1) => Term1(label, evaluateHelper(arg1))
-    case Term0(label) => Term0(label)
-    case Quantifier(label, arg1, arg2) => Quantifier(label, evaluateHelper(arg1), evaluateHelper(arg2))
-    case Question1(whPhrase, question) => Question1(whPhrase, evaluateHelper(question))
-    case Question2(question) => Question2(question)
-    case Empty() => Empty()
-  }
-}
-
-
-def sentenceAnd(x: S[Ls], y: S[Ls]): S[Ls] = {
-  x match {
-    case Prop0(labelX) => {
-      y match {
-        case Prop0(labelY) => {
-          labelX match {
-            case True() => {
-              labelY match {
-                case True() => Prop0(True())
-                case False() => Prop0(False())
-                case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-              }
-            }
-            case False() => Prop0(False())
-            case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-            }
-          }
-          case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-        }
-      }
-    case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-  }
-}
-
-
-def sentenceOr(x: S[Ls], y: S[Ls]): S[Ls] = {
-  x match {
-    case Prop0(labelX) => {
-      y match {
-        case Prop0(labelY) => {
-          labelX match {
-            case False() => {
-              labelY match {
-                case False() => Prop0(False())
-                case True() => Prop0(True())
-                case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-              }
-            }
-            case True() => Prop0(True())
-            case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-            }
-          }
-          case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-        }
-      }
-    case other => println("Found unexpected argument to and: " ++ show(other)); Prop0(False())
-  }
-}
-
-def evaluate(s: S[Ls]): Bool = {
+def evaluate(s: S[Ls]): S[Ls] = {
   var terms: List[S[Ls]] = Nil()
-  var propositions = emptyGeneric[S[Ls], S[Ls]]
   try {
-    // println("Original S: \"" ++ sentenceToString(input) ++ "\"")
-    // println("Evaluation of S: \"" ++ sentenceToString(evaluationSentence) ++ "\"")
     var sentenceWithoutQuantifiers = removeQuantifiers(gatherTerms(s))
-    println("All terms: " ++ show(terms))
-    println("S without quantifiers: \"" ++ sentenceToStringParan(sentenceWithoutQuantifiers) ++ "\"")
-    var evaluationSentence = evaluateHelper(sentenceWithoutQuantifiers)
-    evaluationSentence match {
-      case Prop0(True()) => true
-      case Prop0(False()) => false
-      case other => println("S can't be reduced to true or false: " ++ show(other)); false
-    }
+    // println("All terms: " ++ show(terms))
+    // println("S without quantifiers: \"" ++ sentenceToString(sentenceWithoutQuantifiers) ++ "\"")
+    removeRedundantTerms(sentenceWithoutQuantifiers)
   } with EvaluateEffects {
     def lookupTerm(s: S[Ls]) = {
       if (terms.contains(s) {(x, y) => show(x) == show(y)}) {
@@ -200,35 +113,23 @@ def evaluate(s: S[Ls]): Bool = {
         resume(s)
       }
     }
-    def lookupProp(s: S[Ls]) = {
-      val result = getOrElse(propositions, s) { () =>
-      console {
-          do writeLine("No entry for \"" ++ sentenceToString(s) ++ "\" found, is it true or false?")
-          val answer = do readLine()
-          answer match {
-            case "true" => propositions.put(s, Prop0(True())); Prop0(True())
-            case other => propositions.put(s, Prop0(False())); Prop0(False())
-          }
-        }
-      }
-      resume(result)
-    }
     def getTerms() = {
       resume(terms)
     }
     def removeFromTerms(s: S[Ls]) = {
-      terms.indexOf(s) {(x, y) => show(x) == show(y)} match {
-        case Some(i) => terms = terms.deleteAt(i); resume(())
-        case None() => resume(())
-      }
+      while (
+      terms.indexOf(s) {(x, y) => show(y).containsSubstring(show(x))} match {
+        case Some(i) => terms = terms.deleteAt(i); true
+        case None() => false
+      })()
+      resume(())
     }
   }
 }
 
 
-def main(): Unit  = { 
-    var input = parse([Everyone(), Says(), True()])
-    println(sentenceToString(input))
-    println(show(evaluate(input)))
+
+def main() = {
+  println(sentenceToStringParan(evaluate(parse([Everyone(), Says(), Alice(), Loves(), Her(), Mother()]))))
 }
 
