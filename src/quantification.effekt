@@ -3,13 +3,12 @@ module quantification
 import src/sentence
 import src/inputOutput
 import src/traceWho
-import src/implicature
 
 
 interface Quantification[L] {
   // Corresponds to every/a ___
-  def every(f: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls]
-  def a(f: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls]
+  def every(s: Sentence[Ls]): Sentence[Ls]
+  def a(s: Sentence[Ls]): Sentence[Ls]
   // Corresponds to everyone/someone
   def everyone(): Sentence[L]
   def someone(): Sentence[L]
@@ -23,13 +22,13 @@ def quantificationBoundary(personLabel: String) { body: {Quantification[Ls]} => 
       val x = fresh()
       forall(x, resume(x))
     }
-    def every(f: Sentence[Ls] => Sentence[Ls] at {}) = {
+    def every(s: Sentence[Ls]) = {
       val x = fresh()
-      forall(x, implies(f(x), resume(x)))
+      forall(x, implies(is_(x, s), resume(x)))
     }
-    def a(f: Sentence[Ls] => Sentence[Ls] at {}) = {
+    def a(s: Sentence[Ls]) = {
       val x = fresh()
-      exists(x, andP(f(x), resume(x)))
+      exists(x, andP(is_(x, s), resume(x)))
     }
     def someone() = {
       val x = fresh()
@@ -51,12 +50,14 @@ def quantificationBoundary { body: {Quantification[Ls]} => Sentence[Ls] / Quanti
 // Helper Definitions
 def everyone(): Sentence[Ls] / {Quantification[Ls]} = do everyone()
 def someone(): Sentence[Ls] / {Quantification[Ls]} = do someone()
-def a(predicate: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls] / {Quantification[Ls]} = do a(predicate)
-// Meeting: Show unboxed Version
-def every(predicate: Sentence[Ls] => Sentence[Ls] at {}): Sentence[Ls] / {Quantification[Ls]} = do every(predicate)
+def a(s: Sentence[Ls]): Sentence[Ls] / {Quantification[Ls]} = do a(s)
+def every(s: Sentence[Ls]): Sentence[Ls] / {Quantification[Ls]} = do every(s)
 
-
+val aStudentLikesEveryBook: Sentence[Ls] = 
+  quantificationBoundary {
+    a(woman()).likes(every(man()))
+} 
 
 def main() = {
-  println(show("a"))
+  println(show(aStudentLikesEveryBook))
 }

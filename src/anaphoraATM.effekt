@@ -1,0 +1,35 @@
+module playground
+
+
+import src/sentence
+
+type Mixed {
+  unbound(s: Sentence[Ls])
+  bound(s: Sentence[Ls])
+}
+
+interface Anaphora[L] {
+  def get(): Mixed
+  def set(s: Mixed): Mixed
+}
+
+
+def anaphora[L]{body: () => Mixed / Anaphora[L]}: Mixed = {
+  var cache = unbound(Empty())
+  try {
+    body()
+  } with Anaphora[L] {
+    def get() = {
+      cache match {
+        case unbound(s) => <>
+        case bound(s) => resume(cache)
+      }
+    }
+    def set(s) = {
+      s match {
+        case unbound(a) => cache = bound(a); resume(bound(a))
+        case bound(a) => cache = bound(a); resume(bound(a))
+      }
+    }
+  }
+}

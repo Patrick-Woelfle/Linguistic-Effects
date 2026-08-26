@@ -23,8 +23,6 @@ type Ls {
   Loves()
   Says()
   Saw()
-  Man()
-  Woman()
   Respects()
   Implies()
   InLoveWith()
@@ -32,9 +30,12 @@ type Ls {
   And()
   Or()
   Likes()
+  Is()
   True()
   False()
   // Terms
+  Man()
+  Woman()
   Father()
   Mother()
   OpinionOf()
@@ -72,14 +73,6 @@ def saw(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Prop2(Saw(), arg1, arg2)
 }
 
-def man(arg1: Sentence[Ls]) = {
-  Prop1(Man(), arg1)
-}
-
-def woman(arg1: Sentence[Ls]) = {
-  Prop1(Woman(), arg1)
-}
-
 def respects(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Prop2(Saw(), arg1, arg2)
 }
@@ -100,12 +93,24 @@ def likes(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
   Prop2(Likes(), arg1, arg2)
 }
 
+def is_(arg1: Sentence[Ls], arg2: Sentence[Ls]) = {
+  Prop2(Is(), arg1, arg2)
+}
+
 def true_(): Sentence[Ls] = {
   Prop0(True())
 }
 
 def false_(): Sentence[Ls] = {
   Prop0(False())
+}
+
+def man() = {
+  Term0(Man())
+}
+
+def woman() = {
+  Term0(Woman())
 }
 
 def father(arg1: Sentence[Ls]) = {
@@ -124,19 +129,19 @@ def person(name: String): Sentence[Ls] = {
   Term0(Person())
 }
 
-val john: Sentence[Ls] = {
+def john(): Sentence[Ls] = {
   Term0(John())
 }
 
-val bob: Sentence[Ls] = {
+def bob(): Sentence[Ls] = {
   Term0(Bob())
 }
 
-val alice: Sentence[Ls] = {
+def alice(): Sentence[Ls] = {
   Term0(Alice())
 }
 
-val nothing: Sentence[Ls] = {
+def nothing(): Sentence[Ls] = {
   Term0(Nothing())
 }
 

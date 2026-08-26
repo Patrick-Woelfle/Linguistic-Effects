@@ -1,0 +1,39 @@
+module implicature
+
+import src/sentence
+import src/traceWho
+
+
+// Should be reworked, currently not clear what it is supposed to do
+
+interface Implicature {
+  def who(sentence1: Sentence[Ls]) {f: () => Sentence[Ls] / Trace}: Sentence[Ls]
+}
+
+// def implicatureBoundary { body: {Implicature} => Sentence[Ls] / Implicature}: Sentence[Ls] = {
+//   try {
+//     body{cap}
+//   } with cap: Implicature {
+//     def who(sentence1: Sentence[Ls]) = { resume { {f} => 
+//     andP(resume{f}, (traceBoundary{f()}){() => sentence1})
+//     }
+     
+//     } 
+//   }
+// }
+
+
+// def implicatureBoundary { body: () => Sentence[Ls] / Implicature}: Sentence[Ls] = {
+//   implicatureBoundary{ {_} => body()}
+// }
+
+// Helper Definitions
+def who(sentence1: Sentence[Ls]) {f: () => Sentence[Ls] / Trace} = do who(sentence1) {f}
+
+
+// val test = implicatureBoundary {
+//   who(john()){likes(__(), bob())}
+// }
+
+
+

@@ -5,10 +5,8 @@ import src/sentence
 import src/inputOutput
 import src/traceWho
 import src/quantification
-import src/implicature
 import src/parse
 import src/directSpeach
-
 
 
 def main() = {
@@ -17,61 +15,71 @@ def main() = {
     test("Simple Pronoun Binding") {
       assert( 
           parse([Bob(), Loves(), His(), Mother()]).show(), 
-          bob.loves(bob.mother()).show()
+          bob().loves(bob().mother()).show()
       )
     }
     test("Douple Pronoun Binding") {
       assert( 
           parse([Bob(), Says(), He(), Loves(), His(), Mother()]).show(), 
-          bob.says(bob.loves(bob.mother)).show()
+          bob().says(bob().loves(bob().mother)).show()
       )
     }
     test("Pronoun Usage before binding") {
       assert( 
           parse([He(), Loves(), Bob(), Mother()]).show(), 
-          Empty().loves(bob.mother()).show()
+          Empty().loves(bob().mother()).show()
       )
     }
     test("Input Output over multiple Levels") {
       assert( 
         ioBoundary[Ls] { {inputOuter} {outputOuter} =>
           ioBoundary[Ls] { {inputInner} {outputInner} =>
-            outputOuter.output(bob).says(outputInner.output(alice).says(inputInner.input().loves(inputOuter.input().mother())))
+            outputOuter.output(bob()).says(outputInner.output(alice()).says(inputInner.input().loves(inputOuter.input().mother())))
           }
         }.show(), 
-        bob.says(alice.says(alice.loves(bob.mother()))).show()
+        bob().says(alice().says(alice().loves(bob().mother()))).show()
       )
     }
     test("Input without Output") {
       def herMother(): Sentence[Ls] => Sentence[Ls] at {} = inputBoundary {
         her().mother()
       }
-      assert(herMother()(alice).show(), alice.mother().show())
+      assert(herMother()(alice()).show(), alice().mother().show())
     }
     // --------------- Trace Who ---------------
     test("Trace Boundary Normal") {
-      def aliceLoves___(): {() => Sentence[Ls]} => Sentence[Ls] at {} = traceBoundary {loves(alice, __())}
-      val aliceLovesBob: Sentence[Ls] = (aliceLoves___()){() => bob}
-      assert(aliceLovesBob.show(), alice.loves(bob).show())
+      def aliceLoves___(): {() => Sentence[Ls]} => Sentence[Ls] at {} = traceBoundary {loves(alice(), __())}
+      val aliceLovesBob: Sentence[Ls] = (aliceLoves___()){() => bob()}
+      assert(aliceLovesBob.show(), alice().loves(bob()).show())
     }
     test("Trace Boundary Overloaded") {
-      def aliceLoves___{answer: () => Sentence[Ls]}: Sentence[Ls] = traceBoundary {loves(alice, __())} {answer}
-      val aliceLovesBob: Sentence[Ls] = aliceLoves___{() => bob}
-      assert(aliceLovesBob.show(), alice.loves(bob).show())
+      def aliceLoves___{answer: () => Sentence[Ls]}: Sentence[Ls] = traceBoundary {loves(alice(), __())} {answer}
+      val aliceLovesBob: Sentence[Ls] = aliceLoves___{() => bob()}
+      assert(aliceLovesBob.show(), alice().loves(bob()).show())
     }
     test("Who Boundary") {
-      def WhoDidAliceSee(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who()} {alice.saw(__())}
-      val aliceSawBob = (WhoDidAliceSee()){() => bob}
-      assert(aliceSawBob.show(), alice.saw(bob).show())
+      def WhoDidAliceSee(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who()} {alice().saw(__())}
+      val aliceSawBob = (WhoDidAliceSee()){() => bob()}
+      assert(aliceSawBob.show(), alice().saw(bob()).show())
     }
     test("Pied Piping") {
-      def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who().mother()} {alice.loves(__())} 
-      val aliceLovesBobsMother: Sentence[Ls] = (whoseMotherDoesAliceLove()){() => bob}
-      assert(aliceLovesBobsMother.show(), alice.loves(bob.mother).show())
+      def whoseMotherDoesAliceLove(): {() => Sentence[Ls]} => Sentence[Ls] at {} = whoBoundary {do who().mother()} {alice().loves(__())} 
+      val aliceLovesBobsMother: Sentence[Ls] = (whoseMotherDoesAliceLove()){() => bob()}
+      assert(aliceLovesBobsMother.show(), alice().loves(bob().mother).show())
     }
     // --------------- Quantification ---------------
     test("Simple Quantification") {
-      assert(parse([Alice(), Loves(), Everyone(), Mother()]).show(), forall(identifier("x0"), alice.loves(identifier("x0").mother())).show())
+      assert(parse([Alice(), Loves(), Everyone(), Mother()]).show(), forall(identifier("x0"), alice().loves(identifier("x0").mother())).show())
+    }
+    test("Other types of quantification") {
+      val aliceLovesAWoman: Sentence[Ls] = quantificationBoundary {
+        alice().loves(a(woman()))
+      }
+      assert(aliceLovesAWoman.show(), exists(identifier("x0"), andP(is_(identifier("x0"), woman()), alice().loves(identifier("x0")))).show())
+      val everyWomanLovesAMan: Sentence[Ls] = quantificationBoundary {
+        every(woman()).loves(a(man()))
+      }
+      assert(everyWomanLovesAMan.show(), forall(identifier("x0"), is_(identifier("x0"), woman()).implies(exists(identifier("x1"), andP(is_(identifier("x1"), man()), identifier("x0").loves(identifier("x1")))))).show())
     }
     test("Multiple Levels of Quantification") {
       val someoneLovesEveryone: Sentence[Ls] = quantificationBoundary("x"){ {outer} =>  
@@ -83,19 +91,19 @@ def main() = {
     }
     // --------------- directSpeach ---------------
     test("Simple direct speach") {
-      val johnSaidBobLovesMe: Sentence[Ls] = john.said{bob.loves(me())}
-      assert(johnSaidBobLovesMe.show(), john.says(bob.loves(john)).show())
+      val johnSaidBobLovesMe: Sentence[Ls] = john().said{bob().loves(me())}
+      assert(johnSaidBobLovesMe.show(), john().says(bob().loves(john())).show())
     }
     // --------------- Interactions ---------------
     test("Interaction Trace Boundary, Input Output") {
       val bobLovesHisMother: Sentence[Ls] = ioBoundary {
-        traceBoundary {loves(__(), his().mother)} {bind(bob)}
+        traceBoundary {loves(__(), his().mother)} {bind(bob())}
       }
-      assert(bobLovesHisMother.show(), bob.loves(bob.mother).show())
+      assert(bobLovesHisMother.show(), bob().loves(bob().mother).show())
       val herMotherLovesAlice: Sentence[Ls] = ioBoundary {
-        traceBoundary {loves(mother(her()), __())} {bind(alice)}
+        traceBoundary {loves(mother(her()), __())} {bind(alice())}
       }
-      assert(herMotherLovesAlice.show(), Empty().mother.loves(alice).show())
+      assert(herMotherLovesAlice.show(), Empty().mother.loves(alice()).show())
     }
     test("Interaction Input Output, Quantification") {
       val everyonesFatherLovesTheirMother: Sentence[Ls] = ioBoundary[Ls] {
@@ -107,15 +115,15 @@ def main() = {
     }
     test("Interaction Input Output, Direct Speach") {
       val johnLikesHeSaidBobLovesMe = ioBoundary[Ls] {
-        bind(john).loves(he().said{bob.loves(me())})
+        bind(john()).loves(he().said{bob().loves(me())})
       }
-      assert(show(johnLikesHeSaidBobLovesMe), show(john.loves(john.says(bob.loves(john)))))
+      assert(show(johnLikesHeSaidBobLovesMe), show(john().loves(john().says(bob().loves(john())))))
     }
     test("Interaction Quantification, Direct Speach") {
       val everyoneSaidBobLovesMe = quantificationBoundary {
-        everyone().said{bob.loves(me())}
+        everyone().said{bob().loves(me())}
       }
-      assert(show(everyoneSaidBobLovesMe), show(forall(identifier("x0"), identifier("x0").says(bob.loves(identifier("x0"))))))
+      assert(show(everyoneSaidBobLovesMe), show(forall(identifier("x0"), identifier("x0").says(bob().loves(identifier("x0"))))))
     }
     test("Interaction Input Output, Quantification, Questions") {
       def whosePresentforhimDideveryonesFatherSee{answer: () => Sentence[Ls]}: Sentence[Ls] = quantificationBoundary {
@@ -123,8 +131,8 @@ def main() = {
           (whoBoundary {do who().present(he())} {bind(father(everyone())).saw(__())}) {answer()}
         }
       }
-      val everyonesFatherSawBobsPresentForHim = show(whosePresentforhimDideveryonesFatherSee{() => bob})
-      val denotationEveryonesFatherSawBobsPresentForHim = show(forall(identifier("x0"), identifier("x0").father().saw(bob.present(identifier("x0").father()))))
+      val everyonesFatherSawBobsPresentForHim = show(whosePresentforhimDideveryonesFatherSee{() => bob()})
+      val denotationEveryonesFatherSawBobsPresentForHim = show(forall(identifier("x0"), identifier("x0").father().saw(bob().present(identifier("x0").father()))))
       assert(everyonesFatherSawBobsPresentForHim, denotationEveryonesFatherSawBobsPresentForHim)
       def whoseMotherLovesHisFather{answer: () => Sentence[Ls] / {Quantification[Ls], Output[Ls]}}: Sentence[Ls] = quantificationBoundary {
         ioBoundary[Ls] {

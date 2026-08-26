@@ -38,6 +38,7 @@ def labelToString(label: Ls): String = {
     case Who() => " who"
     case Trace() => " __"
     case Pronoun() => " pronoun"
+    case Is() => " is"
     //case a => " Found something unexpected: '" ++ show(a) ++ "'"
   }
 }
