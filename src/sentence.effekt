@@ -1,8 +1,5 @@
 module sentence
 
-
-// Delete Prop0 and Term0
-// Rework Questions to work with immediate answer
 type S[L] {
   Prop3(label: L, argument1: S[L], argument2: S[L], argument3: S[L])
   Prop2(label: L, argument1: S[L], argument2: S[L])

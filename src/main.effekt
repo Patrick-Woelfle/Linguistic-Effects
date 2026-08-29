@@ -3,5 +3,5 @@ module main
 import src/sentence
 
 def main() = {
-  println("a")
+  println("")
 }

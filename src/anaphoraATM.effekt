@@ -15,7 +15,7 @@ interface Anaphora[L] {
 
 
 def anaphora[L]{body: () => Mixed / Anaphora[L]}: Mixed = {
-  var cache = unbound(Empty())
+  var cache = unbound(Unknown())
   try {
     body()
   } with Anaphora[L] {
